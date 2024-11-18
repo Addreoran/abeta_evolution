@@ -121,6 +121,32 @@ def get_excluded_names(file_fasta, file_excluded, file_aln, analise_file):
             f.write(f"{acc}; {acc_headers[acc]['name']}; {organism}; {organism_accs_icluded}\n")
 
 
+# import os
+#
+# # get the working directory
+# base_path = os.getcwd()
+#
+# # this is the name of your file (with the 'py' extension)
+# your_file_name = "imieninywybor.py"
+#
+# # Concatenate the file to your path
+# full_path = os.path.join(base_path, your_file_name)
+def get_uniprot(file_uniprot):
+    import urllib.request
+    urllib.request.urlretrieve(
+        "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz",
+        "../data/uniprot_trembl.fasta.gz")
+    # https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz
+    urllib.request.urlretrieve(
+        "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz",
+        "../data/uniprot_sprot.fasta.gz")
+    # https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+    os.system(f"zcat ../data/uniprot_trembl.fasta.gz > {file_uniprot}")
+    os.system(f"zcat ../data/uniprot_sprot.fasta.gz >> {file_uniprot}")
+    # połączyć je
+    pass
+
+
 if __name__ == "__main__":
     # 1) Pobranie białek powstających z genu APP
     # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -145,9 +171,8 @@ if __name__ == "__main__":
                        file_aln="../data/alignment_AB.aln",
                        analise_file="../data/excluded_acc_analyse.csv")
     # 4) jackhmmer
-
     # 4a) pobranie bazy trembl+sp
-
+    get_uniprot("../data/uniprot.fasta")
     # 4b) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
     # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
     # 6) usunięcie redundancji
