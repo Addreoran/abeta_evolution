@@ -1,6 +1,7 @@
 import os
 import re
 
+
 def get_APP_protein(file_uniprot, file_app):
     file_app_new = open(file_app, "w")
     with open(file_uniprot) as f:
@@ -17,6 +18,7 @@ def get_APP_protein(file_uniprot, file_app):
                 if is_APP:
                     file_app_new.write(line)
     file_app_new.close()
+
 
 def run_mafft(file, out):
     os.system(f'"/usr/bin/mafft"  --auto --clustalout --reorder "{file}" > "{out}"')
@@ -85,6 +87,38 @@ def aln_to_fasta(file_fasta_all, file_fasta, sequences):
             f.write("\n")
 
 
+def get_excluded_names(file_fasta, file_excluded, file_aln, analise_file):
+    acc_headers = {}
+    organism_acc = {}
+    with open(file_fasta) as f:
+        for line in f.readlines():
+            if line.startswith(">"):
+                acc = line.split("|")[1]
+                if acc not in acc_headers:
+                    # >tr|A0A0A0MPX8|A0A0A0MPX8_FELCA Amyloid-beta A4 protein OS=Felis catus OX=9685 GN=APP PE=3 SV=2
+                    acc_headers[acc] = {"organism": line.split("OX=")[-1].split("OS=")[-1],
+                                        "taxonomy": line.split("OX=")[-1].split()[0],
+                                        "name": line.split(" ", 1)[1].split("OS=")[0]}
+                if line.split("OX=")[-1].split("OS=")[-1] not in organism_acc:
+                    organism_acc[line.split("OX=")[-1].split("OS=")[-1]] = set()
+                organism_acc[line.split("OX=")[-1].split("OS=")[-1]].add(acc)
+    acc_excluded = set()
+    with open(file_excluded) as f:
+        for line in f.readlines():
+            if line.strip():
+                acc_excluded.add(line.split("|")[1])
+    acc_aligned = set()
+    with open(file_aln) as f:
+        for line in f.readlines():
+            if line.strip():
+                acc_aligned.add(line.split("|")[1])
+    with open(analise_file, "w") as f:
+        for acc in acc_excluded:
+            organism = acc_headers[acc]["organism"]
+            organism_accs_icluded = organism_acc[organism].intersection(acc_aligned)
+            f.write(f"{acc}; {acc_headers[acc]["name"]}, {organism}, {organism_accs_icluded}")
+
+
 if __name__ == "__main__":
     # 1) Pobranie białek powstających z genu APP
     # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -100,10 +134,18 @@ if __name__ == "__main__":
     aln_to_fasta(file_fasta_all="../data/uniprot_only_APP.fasta",
                  file_fasta="../data/uniprot_AB.fasta",
                  sequences=sequences)
+    # 3d) sprawdzić czy wykluczenia są ok
+    # - pobrać nazwy białek i orgainzmy,
+    # jeśli takie samo już jest w moim zestawie białek,
+    # to nie wyrzucam, jeśli nie ma, to sprawdzam czy na pewno powinno zostać wyrzucone
+    get_excluded_names(file_fasta="../data/uniprot_only_APP.fasta",
+                       file_excluded="../data/alignment_AB_excluded.aln",
+                       file_aln="../data/alignment_AB.aln",
+                       analise_file="excluded_acc_analyse.csv")
     # 4) jackhmmer
 
     # 4a) pobranie bazy trembl+sp
 
     # 4b) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
-
-    # 5) usunięcie redundancji
+    # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
+    # 6) usunięcie redundancji
