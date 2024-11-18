@@ -99,7 +99,7 @@ def get_excluded_names(file_fasta, file_excluded, file_aln, analise_file):
                     organism = line.split("OX=")[-1].split("OS=")[-1].split()[0]
                     acc_headers[acc] = {"organism": organism,
                                         "taxonomy": line.split("OX=")[-1].split()[0],
-                                        "name": line.split(" ", 1)[1].split("0S=")[0]}
+                                        "name": line.split(" ", 1)[1].split("OS=")[0]}
                 if organism not in organism_acc:
                     organism_acc[organism] = set()
                 organism_acc[organism].add(acc)
