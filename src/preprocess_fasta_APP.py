@@ -102,7 +102,7 @@ def get_excluded_names(file_fasta, file_excluded, file_aln, analise_file):
                                         "name": line.split(" ", 1)[1].split("0S=")[0]}
                 if organism not in organism_acc:
                     organism_acc[organism] = set()
-                organism_acc[line.split("OX=")[-1].split("OS=")[-1]].add(acc)
+                organism_acc[organism].add(acc)
     acc_excluded = set()
     with open(file_excluded) as f:
         for line in f.readlines():
