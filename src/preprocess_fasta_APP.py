@@ -53,8 +53,8 @@ def search_APP_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     res = re.search(pattern2, sequences[acc_human])
     begin = res.start()
     end = res.end()
-    sequences_included = {i: j for i, j in sequences.items() if j[begin:end].count("-") > 5}
-    sequences_excluded = {i: j for i, j in sequences.items() if j[begin:end].count("-") > 5}
+    sequences_included = {i: j for i, j in sequences.items() if j[begin:end].replace("-").count("-") > 5}
+    sequences_excluded = {i: j for i, j in sequences.items() if j[begin:end].replace("-").count("-") < 5}
 
     with open(file_out_aln, "w") as f:
         for acc, sequence_AB in sequences_included.items():
