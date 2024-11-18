@@ -117,7 +117,7 @@ def get_excluded_names(file_fasta, file_excluded, file_aln, analise_file):
             organism = acc_headers[acc]["organism"]
             organism_accs_icluded = organism_acc[organism].intersection(acc_aligned)
             print(acc_headers[acc])
-            f.write(f"{acc}; {acc_headers[acc]["name"]}, {organism}, {organism_accs_icluded}")
+            f.write(f"{acc}; {acc_headers[acc]['name']}, {organism}, {organism_accs_icluded}")
 
 
 if __name__ == "__main__":
