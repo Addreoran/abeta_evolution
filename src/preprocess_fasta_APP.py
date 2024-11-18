@@ -98,7 +98,7 @@ def get_excluded_names(file_fasta, file_excluded, file_aln, analise_file):
                     # >tr|A0A0A0MPX8|A0A0A0MPX8_FELCA Amyloid-beta A4 protein OS=Felis catus OX=9685 GN=APP PE=3 SV=2
                     acc_headers[acc] = {"organism": line.split("OX=")[-1].split("OS=")[-1],
                                         "taxonomy": line.split("OX=")[-1].split()[0],
-                                        "name": line.split(" ", 1)[1].split("OS=")[0]}
+                                        "name": line.split(" ", 1)[1]}
                 if line.split("OX=")[-1].split("OS=")[-1] not in organism_acc:
                     organism_acc[line.split("OX=")[-1].split("OS=")[-1]] = set()
                 organism_acc[line.split("OX=")[-1].split("OS=")[-1]].add(acc)
