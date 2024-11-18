@@ -143,7 +143,7 @@ if __name__ == "__main__":
     get_excluded_names(file_fasta="../data/uniprot_only_APP.fasta",
                        file_excluded="../data/alignment_AB_excluded.aln",
                        file_aln="../data/alignment_AB.aln",
-                       analise_file="excluded_acc_analyse.csv")
+                       analise_file="../data/excluded_acc_analyse.csv")
     # 4) jackhmmer
 
     # 4a) pobranie bazy trembl+sp
