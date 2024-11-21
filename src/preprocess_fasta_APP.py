@@ -1,5 +1,6 @@
 import os
 import re
+from multiprocessing import Pool
 
 
 def get_APP_protein(file_uniprot, file_app):
@@ -155,7 +156,6 @@ def get_fasta_of_aln(file_aln, fasta_all, fasta_ab):
                 acc = line.split("|")[1]
                 if acc not in acc_headers:
                     # >tr|A0A0A0MPX8|A0A0A0MPX8_FELCA Amyloid-beta A4 protein OS=Felis catus OX=9685 GN=APP PE=3 SV=2
-                    organism = line.split("OX=")[-1].split("OS=")[-1].split()[0]
                     acc_headers[acc] = line
     seq_data = {}
     with open(file_aln) as f:
@@ -165,11 +165,27 @@ def get_fasta_of_aln(file_aln, fasta_all, fasta_ab):
                 acc = line[0].split("|")[1]
                 sequence = line[1].replace("-", "")
                 seq_data[acc] = sequence
-    with open(fasta_ab, "w") as f:
-        for acc, seq in seq_data.items():
-            f.write(f">{acc}\n")
+    if not os.path.exists("./data/fasta_ab/"):
+        os.makedirs("./data/fasta_ab/")
+    for acc, seq in seq_data.items():
+        with open(f"./data/fasta_ab/{acc}", "w") as f:
+            f.write(f">{acc_headers[acc]}\n")
             f.write(f"{seq}\n")
 
+
+def run_jackhmmers(query_folder, result_folder, db_file):
+    files = os.listdir(query_folder)
+    if not os.path.exists(f"./data/{result_folder}"):
+        os.makedirs(f"./data/{result_folder}")
+    dataset = [(i.split(".")[0], db_file, result_folder) for i in files]
+    with Pool(20) as p:
+        print(p.map(run_jackhmmer, dataset))
+
+
+def run_jackhmmer(data):
+    query_file, db_file, result_folder = data
+    os.system(f"jackhmmer -A ./data/{result_folder}/jackhmmer_{query_file}.aln "
+              f"-o ./data/{result_folder}/jackhmmer_{query_file}.txt --cpu 2 ./data/fasta_ab/{query_file}.fasta {db_file}")
     pass
 
 
@@ -201,10 +217,12 @@ if __name__ == "__main__":
     # get_uniprot("../data/uniprot.fasta")
     # 4b) pobranie fasta z align
     get_fasta_of_aln(file_aln="../data/alignment_AB.aln",
-              fasta_all="../data/uniprot_APP.fasta",
-              fasta_ab="../data/AB.fasta")
+                     fasta_all="../data/uniprot_APP.fasta",
+                     fasta_ab="../data/AB.fasta")
     # 4b) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
-
+    run_jackhmmers(query_folder="../data/fasta_ab/",
+                   result_folder="jackhmmer",
+                   db_file="../data/uniprot.fasta")
     # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
 
     # 6) usunięcie redundancji
