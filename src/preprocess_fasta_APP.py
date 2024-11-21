@@ -147,6 +147,32 @@ def get_uniprot(file_uniprot):
     pass
 
 
+def get_fasta_of_aln(file_aln, fasta_all, fasta_ab):
+    acc_headers = {}
+    with open(fasta_all) as f:
+        for line in f.readlines():
+            if line.startswith(">"):
+                acc = line.split("|")[1]
+                if acc not in acc_headers:
+                    # >tr|A0A0A0MPX8|A0A0A0MPX8_FELCA Amyloid-beta A4 protein OS=Felis catus OX=9685 GN=APP PE=3 SV=2
+                    organism = line.split("OX=")[-1].split("OS=")[-1].split()[0]
+                    acc_headers[acc] = line
+    seq_data = {}
+    with open(file_aln) as f:
+        for line in f.readlines():
+            if line.strip():
+                line = line.split()
+                acc = line[0].split("|")[1]
+                sequence = line[1].replace("-", "")
+                seq_data[acc] = sequence
+    with open(fasta_ab, "w") as f:
+        for acc, seq in seq_data.items():
+            f.write(f">{acc}\n")
+            f.write(f"{seq}\n")
+
+    pass
+
+
 if __name__ == "__main__":
     # 1) Pobranie białek powstających z genu APP
     # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -172,7 +198,13 @@ if __name__ == "__main__":
                        analise_file="../data/excluded_acc_analyse.csv")
     # 4) jackhmmer
     # 4a) pobranie bazy trembl+sp
-    get_uniprot("../data/uniprot.fasta")
+    # get_uniprot("../data/uniprot.fasta")
+    # 4b) pobranie fasta z align
+    get_fasta_of_aln(file_aln="../data/alignment_AB.aln",
+              fasta_all="../data/uniprot_APP.fasta",
+              fasta_ab="../data/AB.fasta")
     # 4b) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
+
     # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
+
     # 6) usunięcie redundancji
