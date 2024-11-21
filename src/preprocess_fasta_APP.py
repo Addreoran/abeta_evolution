@@ -178,7 +178,7 @@ def run_jackhmmers(query_folder, result_folder, db_file):
     if not os.path.exists(f"../data/{result_folder}"):
         os.makedirs(f"../data/{result_folder}")
     dataset = [(i.split(".")[0], db_file, result_folder) for i in files]
-    with Pool(20) as p:
+    with Pool(200) as p:
         p.map(run_jackhmmer, dataset)
 
 
@@ -220,10 +220,12 @@ if __name__ == "__main__":
     get_fasta_of_aln(file_aln="../data/alignment_AB.aln",
                      fasta_all="../data/uniprot_APP.fasta",
                      fasta_ab="../data/AB.fasta")
-    # 4b) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
+    # 4c) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
     run_jackhmmers(query_folder="../data/fasta_ab/",
                    result_folder="jackhmmer",
                    db_file="../data/uniprot.fasta")
+    # 4d) połączenie wyników jackhmmer
+
     # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
 
     # 6) usunięcie redundancji
