@@ -168,7 +168,7 @@ def get_fasta_of_aln(file_aln, fasta_all, fasta_ab):
     if not os.path.exists("../data/fasta_ab/"):
         os.makedirs("../data/fasta_ab/")
     for acc, seq in seq_data.items():
-        with open(f"../data/fasta_ab/{acc}", "w") as f:
+        with open(f"../data/fasta_ab/{acc}.fasta", "w") as f:
             f.write(f">{acc_headers[acc]}\n")
             f.write(f"{seq}\n")
 
@@ -179,11 +179,12 @@ def run_jackhmmers(query_folder, result_folder, db_file):
         os.makedirs(f"../data/{result_folder}")
     dataset = [(i.split(".")[0], db_file, result_folder) for i in files]
     with Pool(20) as p:
-        print(p.map(run_jackhmmer, dataset))
+        p.map(run_jackhmmer, dataset)
 
 
 def run_jackhmmer(data):
     query_file, db_file, result_folder = data
+    print()
     os.system(f"jackhmmer -A ../data/{result_folder}/jackhmmer_{query_file}.aln "
               f"-o ../data/{result_folder}/jackhmmer_{query_file}.txt --cpu 2 ../data/fasta_ab/{query_file}.fasta {db_file}")
     pass
