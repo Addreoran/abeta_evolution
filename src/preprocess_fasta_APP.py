@@ -249,7 +249,7 @@ def plot_pyvis(ab_swissprot, jackhmmer):
                 pairs[(main_acc, minor_acc)] = 1
     g = Network()
     added = set()
-    for nodes, weight in pairs:
+    for nodes, weight in pairs.items():
         color_1 = "blue"
         color_2 = "red"
         print(nodes)
