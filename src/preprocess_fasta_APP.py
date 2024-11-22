@@ -400,9 +400,9 @@ def download_fasta(file_list):
                     uniprot_list = line[1].split(",")
                     for uniprot in uniprot_list:
                         if "|" in uniprot:
-                            acc.add(uniprot.split("|")[1])
+                            acc.add(uniprot.strip().split("|")[1])
                         else:
-                            acc.add(uniprot)
+                            acc.add(uniprot.strip())
     with open("../data/after_jackhmmer_total_sequences.fasta", "w") as f:
         for uniprot in acc:
             req = requests.get(f"https://rest.uniprot.org/uniprotkb/{uniprot}.fasta")
@@ -462,10 +462,10 @@ if __name__ == "__main__":
     # run_mafft("../data/after_jackhmmer.fasta",
     #           "../data/after_jackhmmer.aln")
     # # znaleźć sekwencje białek i podzielić na organizmy
-    # download_fasta([
-    #     "../data/encode_seq/index.txt",
-    #     "../data/index_result.txt"
-    # ])
+    download_fasta([
+        "../data/encode_seq/index.txt",
+        "../data/index_result.txt"
+    ])
     run_mafft("../data/after_jackhmmer_total_sequences.fasta",
               "../data/after_jackhmmer_total_sequences.aln")
     sequences = search_APP_localisation(file_aln="../data/after_jackhmmer_total_sequences.aln",
