@@ -200,7 +200,7 @@ def read_fasta_accs(fasta_file):
                 if "|" in line:
                     result.add(line.split("|")[1])
                 else:
-                    result.add(line.strip().replace(">", "")[1])
+                    result.add(line.strip().replace(">", ""))
     return result
 
 
