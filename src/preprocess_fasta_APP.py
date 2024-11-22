@@ -214,20 +214,24 @@ def join_jackhmmer(jackhmmer_folder, output_fasta_file):
     for file in files:
         with open(jackhmmer_folder + file) as f:
             for line in f.readlines():
-                if "STOCKHOLM" in line:
-                    if new_acc is not None:
-                        similar_graph[new_acc] = new_similar
-                    new_acc = None
-                    new_similar = set()
-                elif "GF ID" in line:
-                    new_acc = line.split()[2].split("-")[0]
-                elif "#=GS" in line:
-                    new_similar.add(line.split()[1].split("|")[1])
-                elif "#=GR" not in line and line.strip():
-                    if line.split("|")[1] in new_similar:
-                        line = line.split()
-                        fasta_file.write(f">{line[0]}\n")
-                        fasta_file.write(f"{line[1].replace('-', '')}\n")
+                if line.strip():
+                    if "STOCKHOLM" in line:
+                        if new_acc is not None:
+                            similar_graph[new_acc] = new_similar
+                        new_acc = None
+                        new_similar = set()
+                    elif "GF ID" in line:
+                        new_acc = line.split()[2].split("-")[0]
+                    elif "#=GS" in line:
+                        new_similar.add(line.split()[1].split("|")[1])
+                    elif "#=GR" not in line and line.strip():
+                        if "|" in line:
+                            if line.split("|")[1] in new_similar:
+                                line = line.split()
+                                fasta_file.write(f">{line[0]}\n")
+                                fasta_file.write(f"{line[1].replace('-', '')}\n")
+                    else:
+
     if new_acc is not None:
         similar_graph[new_acc] = new_similar
     fasta_file.close()
