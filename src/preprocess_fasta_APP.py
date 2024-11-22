@@ -252,6 +252,7 @@ def plot_pyvis(ab_swissprot, jackhmmer):
     for nodes, weight in pairs:
         color_1 = "blue"
         color_2 = "red"
+        print(nodes)
         if nodes[0] not in added:
             if nodes[0] in ab_swissprot:
                 g.add_node(nodes[0], color_2)
