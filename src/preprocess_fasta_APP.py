@@ -367,9 +367,9 @@ def encode_result(fasta_file, encode_fasta_file):
                         new.write(seq + "\n")
                         sequences[seq] = id
                         id += 1
-
-                    ids_proteins[sequences[seq]] = accs
-                accs = line.replace(">", "")
+                        ids_proteins[sequences[seq]] = set()
+                    ids_proteins[sequences[seq]].add(accs)
+                accs = line.strip().replace(">", "")
             else:
                 seq = line.strip()
     if accs is not None:
@@ -378,8 +378,8 @@ def encode_result(fasta_file, encode_fasta_file):
             new.write(seq + "\n")
             sequences[seq] = id
             id += 1
-
-        ids_proteins[sequences[seq]] = accs
+            ids_proteins[sequences[seq]] = set()
+        ids_proteins[sequences[seq]].add(accs)
     new.close()
     with open(f"../data/index_result.txt", "w") as f:
         for ids, accs in ids_proteins.items():
