@@ -239,7 +239,7 @@ def join_jackhmmer(jackhmmer_folder, output_fasta_file):
 def plot_pyvis(ab_swissprot, jackhmmer):
     from pyvis.network import Network
     pairs = {}
-    for main_acc, minor_accs in jackhmmer:
+    for main_acc, minor_accs in jackhmmer.items():
         for minor_acc in jackhmmer:
             if (main_acc, minor_acc) in pairs:
                 pairs[(main_acc, minor_acc)] += 1
