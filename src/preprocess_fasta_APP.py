@@ -263,7 +263,7 @@ def plot_pyvis(ab_swissprot, jackhmmer):
             else:
                 g.add_node(nodes[1], color_1)
         # g.add_node(1, color='red')
-        g.add_edge(nodes[0], nodes[2],
+        g.add_edge(nodes[0], nodes[1],
                    value=weight,
                    title=str(weight))  # weight 42
     g.save_graph("../data/nx.html")
