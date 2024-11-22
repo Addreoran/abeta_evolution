@@ -2,6 +2,8 @@ import os
 import re
 from multiprocessing import Pool
 
+excluded_proteins = {"F6ZXB5", 'A0A8C9WM95', 'A0A6Q2YHZ8', 'A0A2I3MME2', 'A0A2I3N8B6', 'A0A3Q3GI80', 'C0JV68'}
+
 
 def get_APP_protein(file_uniprot, file_app):
     file_app_new = open(file_app, "w")
@@ -190,6 +192,144 @@ def run_jackhmmer(data):
     pass
 
 
+def read_fasta_accs(fasta_file):
+    result = set()
+    with open(fasta_file) as f:
+        for line in f.readlines():
+            if line.startswith(">"):
+                result.add(line.split("|")[1])
+    return result
+
+
+def join_jackhmmer(jackhmmer_folder, output_fasta_file):
+    files = os.listdir(jackhmmer_folder)
+    files = [i for i in files if "aln" in i]
+    new_acc = None
+    new_similar = set()
+    similar_graph = {}
+    fasta_file = open(output_fasta_file, "w")
+    for file in files:
+        with open(jackhmmer_folder + file) as f:
+            for line in f.readlines():
+                if "STOCKHOLM" in line:
+                    if new_acc is not None:
+                        similar_graph[new_acc] = new_similar
+                    new_acc = None
+                    new_similar = set()
+                elif "GF ID" in line:
+                    new_acc = line.split()[2].split("-")[0]
+                elif "#=GS" in line:
+                    new_similar.add(line.split()[1].split("|")[1])
+                elif "#=GR" not in line and line.strip():
+                    if line.split("|")[1] in new_similar:
+                        line = line.split()
+                        fasta_file.write(f">{line[0]}\n")
+                        fasta_file.write(f"{line[1].replace('-', '')}\n")
+    if new_acc is not None:
+        similar_graph[new_acc] = new_similar
+    fasta_file.close()
+    return similar_graph
+
+
+def plot_pyvis(ab_swissprot, jackhmmer):
+    from pyvis.network import Network
+    pairs = {}
+    for main_acc, minor_accs in jackhmmer:
+        for minor_acc in jackhmmer:
+            if (main_acc, minor_acc) in pairs:
+                pairs[(main_acc, minor_acc)] += 1
+            elif (minor_acc, main_acc) in pairs:
+                pairs[(minor_acc, main_acc)] += 1
+            else:
+                pairs[(main_acc, minor_acc)] = 1
+    g = Network()
+    added = set()
+    for nodes, weight in pairs:
+        color_1 = "blue"
+        color_2 = "red"
+        if nodes[0] not in added:
+            if nodes[0] in ab_swissprot:
+                g.add_node(nodes[0], color_2)
+            else:
+                g.add_node(nodes[0], color_1)
+        if nodes[1] not in added:
+            if nodes[1] in ab_swissprot:
+                g.add_node(nodes[1], color_2)
+            else:
+                g.add_node(nodes[1], color_1)
+        # g.add_node(1, color='red')
+        g.add_edge(nodes[0], nodes[2],
+                   value=weight,
+                   title=str(weight))  # weight 42
+    g.save_graph("../data/nx.html")
+    g.show('nx.html')
+
+
+def get_unique_sequences(file_aln, fasta_unique_ab):
+    seq_uniq = {}
+    with open(file_aln) as f:
+        for line in f.readlines():
+            if line.strip():
+                line = line.strip().split()
+                acc = line[0].split("|")[1]
+                seq = line[1].replace("-", "")
+            if seq not in seq_uniq:
+                seq_uniq[seq] = set()
+            seq_uniq[seq].add(acc)
+    histidin_6 = 0
+    with open(fasta_unique_ab, "w") as f:
+        for seq, accs in seq_uniq.items():
+            if len(accs.intersection(excluded_proteins)) == 0:
+                f.write(f">{','.join(list(accs))}\n")
+                f.write(seq + "\n")
+                # print(seq, accs, accs.intersection(excluded_proteins))
+                if seq[5] == "H":
+                    histidin_6 += 1
+                else:
+                    print(seq, accs, accs.intersection(excluded_proteins))
+    print(histidin_6)
+
+    return seq_uniq
+
+
+def encode_sequences(fasta_file, file_path, encode_fasta_file):
+    if not os.path.exists(file_path):
+        os.mkdir(file_path)
+    ids_proteins = {}
+    id = 0
+    seq = None
+    accs = None
+    new = open(encode_fasta_file, "w")
+    with open(fasta_file) as f:
+        for line in f.readlines():
+            # pass
+            # with open(file_path, "w") as f2:
+            if line.strip() and line.startswith(">"):
+                if accs is not None:
+                    with open(f"{file_path}/accs_{id}.fasta", "w") as f2:
+                        f2.write(f">{id}\n")
+                        f2.write(seq + "\n")
+                        new.write(f">{id}\n")
+                        new.write(seq + "\n")
+                        ids_proteins[id] = accs
+                        id += 1
+                accs = line.replace(">", "")
+            else:
+                seq = line.strip()
+    if accs is not None:
+        with open(f"{file_path}/accs_{id}.fasta", "w") as f2:
+            f2.write(f">{id}\n")
+            f2.write(seq + "\n")
+            new.write(f">{id}\n")
+            new.write(seq + "\n")
+            ids_proteins[id] = accs
+            id += 1
+    new.close()
+    with open(f"{file_path}/index.txt", "w") as f:
+        for ids, accs in ids_proteins.items():
+            f.write(f"{ids}\t{accs}\n")
+
+
 if __name__ == "__main__":
     # 1) Pobranie białek powstających z genu APP
     # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -220,12 +360,21 @@ if __name__ == "__main__":
     get_fasta_of_aln(file_aln="../data/alignment_AB.aln",
                      fasta_all="../data/uniprot_APP.fasta",
                      fasta_ab="../data/AB.fasta")
+    sequences = get_unique_sequences(file_aln="../data/alignment_AB.aln",
+                                     fasta_unique_ab="../data/AB_uniq.fasta")
+    encode_sequences(file_path="../data/encode_seq/",
+                     fasta_file="../data/AB_uniq.fasta",
+                     encode_fasta_file="../data/encode_AB.fasta")
     # 4c) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
-    run_jackhmmers(query_folder="../data/fasta_ab/",
-                   result_folder="jackhmmer",
+    run_jackhmmers(query_folder="../data/encode_seq/",
+                   result_folder="jackhmmer_encode",
                    db_file="../data/uniprot.fasta")
-    # 4d) połączenie wyników jackhmmer
-
-    # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
-
+    # # 4d) połączenie wyników jackhmmer
+    ad_fasta = read_fasta_accs("../data/encode_AB.fasta")
+    jackhmmer_result = join_jackhmmer("../data/jackhmmer_encode/",
+                                      "../data/data_total_jackhmmer_sequences_encode.fasta")
+    plot_pyvis(ad_fasta, jackhmmer_result)
+    # # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
+    run_mafft("../data/data_total_jackhmmer_sequences_encode.fasta",
+              "../data/data_total_jackhmmer_sequences_encode.aln")
     # 6) usunięcie redundancji
