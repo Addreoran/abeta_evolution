@@ -2,6 +2,8 @@ import os
 import re
 from multiprocessing import Pool
 
+import requests
+
 excluded_proteins = {"F6ZXB5", 'A0A8C9WM95', 'A0A6Q2YHZ8', 'A0A2I3MME2', 'A0A2I3N8B6', 'A0A3Q3GI80', 'C0JV68'}
 
 
@@ -386,56 +388,87 @@ def encode_result(fasta_file, encode_fasta_file):
             f.write(f"{ids}\t{','.join(list(accs))}\n")
 
 
-if __name__ == "__main__":
-    # 1) Pobranie białek powstających z genu APP
-    # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
-    # 2) Usunięcie białek, które nie powstają z APP
-    get_APP_protein(file_uniprot="../data/uniprot_APP.fasta", file_app="../data/uniprot_only_APP.fasta")
-    # 3) szukamy fragmentów abeta
-    # 3A) mafft
-    run_mafft("../data/uniprot_only_APP.fasta", "../data/alignment_APP.aln")
-    # 3b) lokalizacja abety i zapisanie do pliku
-    sequences = search_APP_localisation(file_aln="../data/alignment_APP.aln", file_out_aln="../data/alignment_AB.aln",
-                                        file_out_aln_excluded="../data/alignment_AB_excluded.aln")
-    # 3c) zapisanie fasta do pliku
-    aln_to_fasta(file_fasta_all="../data/uniprot_only_APP.fasta",
-                 file_fasta="../data/uniprot_AB.fasta",
-                 sequences=sequences)
-    # 3d) sprawdzić czy wykluczenia są ok
-    # - pobrać nazwy białek i orgainzmy,
-    # jeśli takie samo już jest w moim zestawie białek,
-    # to nie wyrzucam, jeśli nie ma, to sprawdzam czy na pewno powinno zostać wyrzucone
-    get_excluded_names(file_fasta="../data/uniprot_only_APP.fasta",
-                       file_excluded="../data/alignment_AB_excluded.aln",
-                       file_aln="../data/alignment_AB.aln",
-                       analise_file="../data/excluded_acc_analyse.csv")
-    # 4) jackhmmer
-    # 4a) pobranie bazy trembl+sp
-    # get_uniprot("../data/uniprot.fasta")
-    # 4b) pobranie fasta z align
-    get_fasta_of_aln(file_aln="../data/alignment_AB.aln",
-                     fasta_all="../data/uniprot_APP.fasta",
-                     fasta_ab="../data/AB.fasta")
-    sequences = get_unique_sequences(file_aln="../data/alignment_AB.aln",
-                                     fasta_unique_ab="../data/AB_uniq.fasta")
-    encode_sequences(file_path="../data/encode_seq/",
-                     fasta_file="../data/AB_uniq.fasta",
-                     encode_fasta_file="../data/encode_AB.fasta")
-    # 4c) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
-    # run_jackhmmers(query_folder="../data/encode_seq/",
-    #                result_folder="jackhmmer_encode",
-    #                db_file="../data/uniprot.fasta")
-    # # 4d) połączenie wyników jackhmmer
-    ad_fasta = read_fasta_accs("../data/encode_AB.fasta")
-    jackhmmer_result = join_jackhmmer("../data/jackhmmer_encode/",
-                                      "../data/data_total_jackhmmer_sequences_encode.fasta")
+def download_fasta(file_list):
+    # if not os.path.exists("../data/organism/"):
+    #     os.mkdir("../data/organism/")
+    acc = set()
+    for file in file_list:
+        with open(file) as f:
+            for line in f.readlines():
+                if line.strip():
+                    line = line.split("\t")
+                    uniprot_list = line[1].split(",")
+                    for uniprot in uniprot_list:
+                        if "|" in uniprot:
+                            acc.add(uniprot.split("|")[1])
+                        else:
+                            acc.add(uniprot)
+    with open("../data/after_jackhmmer_total_sequences.fasta", "w") as f:
+        for uniprot in acc:
+            req = requests.get(f"https://rest.uniprot.org/uniprotkb/{uniprot}.fasta")
+            f.write(req.text)
 
-    encode_result(fasta_file="../data/data_total_jackhmmer_sequences_encode.fasta",
-                  encode_fasta_file="../data/data_total_jackhmmer_sequences_encode_encode.fasta")
-    os.system("cat ../data/data_total_jackhmmer_sequences_encode_encode.fasta >../data/after_jackhmmer.fasta")
-    os.system("cat ../data/encode_AB.fasta >>../data/after_jackhmmer.fasta")
-    # plot_pyvis(ad_fasta, jackhmmer_result)
-    # # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
-    run_mafft("../data/after_jackhmmer.fasta",
-              "../data/after_jackhmmer.aln")
+
+if __name__ == "__main__":
+    # # 1) Pobranie białek powstających z genu APP
+    # # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
+    # # 2) Usunięcie białek, które nie powstają z APP
+    # get_APP_protein(file_uniprot="../data/uniprot_APP.fasta", file_app="../data/uniprot_only_APP.fasta")
+    # # 3) szukamy fragmentów abeta
+    # # 3A) mafft
+    # run_mafft("../data/uniprot_only_APP.fasta", "../data/alignment_APP.aln")
+    # # 3b) lokalizacja abety i zapisanie do pliku
+    # sequences = search_APP_localisation(file_aln="../data/alignment_APP.aln", file_out_aln="../data/alignment_AB.aln",
+    #                                     file_out_aln_excluded="../data/alignment_AB_excluded.aln")
+    # # 3c) zapisanie fasta do pliku
+    # aln_to_fasta(file_fasta_all="../data/uniprot_only_APP.fasta",
+    #              file_fasta="../data/uniprot_AB.fasta",
+    #              sequences=sequences)
+    # # 3d) sprawdzić czy wykluczenia są ok
+    # # - pobrać nazwy białek i orgainzmy,
+    # # jeśli takie samo już jest w moim zestawie białek,
+    # # to nie wyrzucam, jeśli nie ma, to sprawdzam czy na pewno powinno zostać wyrzucone
+    # get_excluded_names(file_fasta="../data/uniprot_only_APP.fasta",
+    #                    file_excluded="../data/alignment_AB_excluded.aln",
+    #                    file_aln="../data/alignment_AB.aln",
+    #                    analise_file="../data/excluded_acc_analyse.csv")
+    # # 4) jackhmmer
+    # # 4a) pobranie bazy trembl+sp
+    # # get_uniprot("../data/uniprot.fasta")
+    # # 4b) pobranie fasta z align
+    # get_fasta_of_aln(file_aln="../data/alignment_AB.aln",
+    #                  fasta_all="../data/uniprot_APP.fasta",
+    #                  fasta_ab="../data/AB.fasta")
+    # sequences = get_unique_sequences(file_aln="../data/alignment_AB.aln",
+    #                                  fasta_unique_ab="../data/AB_uniq.fasta")
+    # encode_sequences(file_path="../data/encode_seq/",
+    #                  fasta_file="../data/AB_uniq.fasta",
+    #                  encode_fasta_file="../data/encode_AB.fasta")
+    # # 4c) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
+    # # run_jackhmmers(query_folder="../data/encode_seq/",
+    # #                result_folder="jackhmmer_encode",
+    # #                db_file="../data/uniprot.fasta")
+    # # # 4d) połączenie wyników jackhmmer
+    # ad_fasta = read_fasta_accs("../data/encode_AB.fasta")
+    # jackhmmer_result = join_jackhmmer("../data/jackhmmer_encode/",
+    #                                   "../data/data_total_jackhmmer_sequences_encode.fasta")
+    #
+    # encode_result(fasta_file="../data/data_total_jackhmmer_sequences_encode.fasta",
+    #               encode_fasta_file="../data/data_total_jackhmmer_sequences_encode_encode.fasta")
+    # os.system("cat ../data/data_total_jackhmmer_sequences_encode_encode.fasta >../data/after_jackhmmer.fasta")
+    # os.system("cat ../data/encode_AB.fasta >>../data/after_jackhmmer.fasta")
+    # # plot_pyvis(ad_fasta, jackhmmer_result)
+    # # # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
+    # run_mafft("../data/after_jackhmmer.fasta",
+    #           "../data/after_jackhmmer.aln")
+    # # znaleźć sekwencje białek i podzielić na organizmy
+    download_fasta([
+        "../data/encode_seq/index.txt",
+        "../data/index_result.txt"
+    ])
+    run_mafft("../data/after_jackhmmer_total_sequences.fasta",
+              "../data/after_jackhmmer_total_sequences.aln")
+    sequences = search_APP_localisation(file_aln="../data/after_jackhmmer_total_sequences.aln",
+                                        file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+                                        file_out_aln_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln")
     # 6) usunięcie redundancji
