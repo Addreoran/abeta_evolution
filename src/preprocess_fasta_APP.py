@@ -369,9 +369,9 @@ if __name__ == "__main__":
                      fasta_file="../data/AB_uniq.fasta",
                      encode_fasta_file="../data/encode_AB.fasta")
     # 4c) puszczenie jackhmmer z input jako "../data/uniprot_AB.fasta"
-    run_jackhmmers(query_folder="../data/encode_seq/",
-                   result_folder="jackhmmer_encode",
-                   db_file="../data/uniprot.fasta")
+    # run_jackhmmers(query_folder="../data/encode_seq/",
+    #                result_folder="jackhmmer_encode",
+    #                db_file="../data/uniprot.fasta")
     # # 4d) połączenie wyników jackhmmer
     ad_fasta = read_fasta_accs("../data/encode_AB.fasta")
     jackhmmer_result = join_jackhmmer("../data/jackhmmer_encode/",
