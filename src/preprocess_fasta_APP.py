@@ -230,8 +230,6 @@ def join_jackhmmer(jackhmmer_folder, output_fasta_file):
                                 line = line.split()
                                 fasta_file.write(f">{line[0]}\n")
                                 fasta_file.write(f"{line[1].replace('-', '')}\n")
-                    else:
-
     if new_acc is not None:
         similar_graph[new_acc] = new_similar
     fasta_file.close()
