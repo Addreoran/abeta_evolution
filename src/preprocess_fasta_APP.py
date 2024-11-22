@@ -268,7 +268,7 @@ def plot_pyvis(ab_swissprot, jackhmmer):
                    value=weight,
                    title=str(weight))  # weight 42
     g.save_graph("../data/nx.html")
-    g.show('nx.html')
+    # g.show('nx.html')
 
 
 def get_unique_sequences(file_aln, fasta_unique_ab):
