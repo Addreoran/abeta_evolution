@@ -26,7 +26,7 @@ def get_APP_protein(file_uniprot, file_app):
 
 
 def run_mafft(file, out):
-    os.system(f'"/usr/bin/mafft"  --auto --clustalout --reorder "{file}" > "{out}"')
+    os.system(f'"/usr/bin/mafft"  --anysymbol --auto --clustalout --reorder "{file}" > "{out}"')
 
 
 def search_APP_localisation(file_aln, file_out_aln, file_out_aln_excluded):
@@ -462,10 +462,10 @@ if __name__ == "__main__":
     # run_mafft("../data/after_jackhmmer.fasta",
     #           "../data/after_jackhmmer.aln")
     # # znaleźć sekwencje białek i podzielić na organizmy
-    download_fasta([
-        "../data/encode_seq/index.txt",
-        "../data/index_result.txt"
-    ])
+    # download_fasta([
+    #     "../data/encode_seq/index.txt",
+    #     "../data/index_result.txt"
+    # ])
     run_mafft("../data/after_jackhmmer_total_sequences.fasta",
               "../data/after_jackhmmer_total_sequences.aln")
     sequences = search_APP_localisation(file_aln="../data/after_jackhmmer_total_sequences.aln",
