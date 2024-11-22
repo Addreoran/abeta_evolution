@@ -179,7 +179,7 @@ def run_jackhmmers(query_folder, result_folder, db_file):
     files = os.listdir(query_folder)
     if not os.path.exists(f"../data/{result_folder}"):
         os.makedirs(f"../data/{result_folder}")
-    dataset = [(i.split(".")[0], db_file, result_folder) for i in files]
+    dataset = [(i.split(".")[0], db_file, result_folder) for i in files if "index" not in i]
     with Pool(200) as p:
         p.map(run_jackhmmer, dataset)
 
@@ -197,7 +197,10 @@ def read_fasta_accs(fasta_file):
     with open(fasta_file) as f:
         for line in f.readlines():
             if line.startswith(">"):
-                result.add(line.split("|")[1])
+                if "|" in line:
+                    result.add(line.split("|")[1])
+                else:
+                    result.add(line.strip().replace(">", "")[1])
     return result
 
 
