@@ -210,7 +210,10 @@ def join_jackhmmer(jackhmmer_folder, output_fasta_file):
     new_acc = None
     new_similar = set()
     similar_graph = {}
+    all_uniprots = set()
     fasta_file = open(output_fasta_file, "w")
+    sequences = set()
+    was = set()
     for file in files:
         with open(jackhmmer_folder + file) as f:
             for line in f.readlines():
@@ -228,11 +231,17 @@ def join_jackhmmer(jackhmmer_folder, output_fasta_file):
                         if "|" in line:
                             if line.split("|")[1] in new_similar:
                                 line = line.split()
-                                fasta_file.write(f">{line[0]}\n")
-                                fasta_file.write(f"{line[1].replace('-', '')}\n")
+                                if line[0] not in was:
+                                    was.add(line[0])
+                                    fasta_file.write(f">{line[0]}\n")
+                                    sequences.add(line[1].replace('-', ''))
+                                    fasta_file.write(f"{line[1].replace('-', '')}\n")
+                                    # all_uniprots.add(line.split()[1].split("|")[1])
+
     if new_acc is not None:
         similar_graph[new_acc] = new_similar
     fasta_file.close()
+    print(len(all_uniprots), len(sequences))
     return similar_graph
 
 
@@ -240,7 +249,7 @@ def plot_pyvis(ab_swissprot, jackhmmer):
     from pyvis.network import Network
     pairs = {}
     for main_acc, minor_accs in jackhmmer.items():
-        for minor_acc in jackhmmer:
+        for minor_acc in minor_accs:
             if (main_acc, minor_acc) in pairs:
                 pairs[(main_acc, minor_acc)] += 1
             elif (minor_acc, main_acc) in pairs:
@@ -249,26 +258,32 @@ def plot_pyvis(ab_swissprot, jackhmmer):
                 pairs[(main_acc, minor_acc)] = 1
     g = Network()
     added = set()
+    print(len(pairs))
     for nodes, weight in pairs.items():
         color_1 = "blue"
         color_2 = "red"
-        print(nodes)
         if nodes[0] not in added:
             if nodes[0] in ab_swissprot:
-                g.add_node(nodes[0], color_2)
+                g.add_node(n_id=nodes[0], label=nodes[0], color=color_2)
             else:
-                g.add_node(nodes[0], color_1)
+                g.add_node(n_id=nodes[0], label=nodes[0], color=color_1)
         if nodes[1] not in added:
             if nodes[1] in ab_swissprot:
-                g.add_node(nodes[1], color_2)
+                g.add_node(n_id=nodes[1], label=nodes[1], color=color_2)
             else:
-                g.add_node(nodes[1], color_1)
+                g.add_node(n_id=nodes[1], label=nodes[1], color=color_1)
         # g.add_node(1, color='red')
+        added.add(nodes[0])
+        added.add(nodes[1])
         g.add_edge(nodes[0], nodes[1],
-                   value=weight,
-                   title=str(weight))  # weight 42
-    g.save_graph("../data/nx.html")
-    # g.show('nx.html')
+                   # value=weight,
+                   # title=str(weight)
+                   )  # weight 42
+    # g.save_graph("../data/nx.html")
+    print(len(added))
+    g.show_buttons(filter_=['physics'])
+
+    g.show('nx.html', notebook=False)
 
 
 def get_unique_sequences(file_aln, fasta_unique_ab):
@@ -336,6 +351,41 @@ def encode_sequences(fasta_file, file_path, encode_fasta_file):
             f.write(f"{ids}\t{accs}\n")
 
 
+def encode_result(fasta_file, encode_fasta_file):
+    ids_proteins = {}
+    id = 0
+    seq = None
+    accs = None
+    sequences = {}
+    new = open(encode_fasta_file, "w")
+    with open(fasta_file) as f:
+        for line in f.readlines():
+            if line.strip() and line.startswith(">"):
+                if accs is not None:
+                    if seq not in sequences:
+                        new.write(f">result_{id}\n")
+                        new.write(seq + "\n")
+                        sequences[seq] = id
+                        id += 1
+
+                    ids_proteins[sequences[seq]] = accs
+                accs = line.replace(">", "")
+            else:
+                seq = line.strip()
+    if accs is not None:
+        if seq not in sequences:
+            new.write(f">result_{id}\n")
+            new.write(seq + "\n")
+            sequences[seq] = id
+            id += 1
+
+        ids_proteins[sequences[seq]] = accs
+    new.close()
+    with open(f"../data/index_result.txt", "w") as f:
+        for ids, accs in ids_proteins.items():
+            f.write(f"{ids}\t{accs}\n")
+
+
 if __name__ == "__main__":
     # 1) Pobranie białek powstających z genu APP
     # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -379,8 +429,13 @@ if __name__ == "__main__":
     ad_fasta = read_fasta_accs("../data/encode_AB.fasta")
     jackhmmer_result = join_jackhmmer("../data/jackhmmer_encode/",
                                       "../data/data_total_jackhmmer_sequences_encode.fasta")
-    plot_pyvis(ad_fasta, jackhmmer_result)
+
+    encode_result(fasta_file="../data/data_total_jackhmmer_sequences_encode.fasta",
+                  encode_fasta_file="../data/data_total_jackhmmer_sequences_encode_encode.fasta")
+    os.system("cat ../data/data_total_jackhmmer_sequences_encode_encode.fasta >../data/after_jackhmmer.fasta")
+    os.system("cat ../data/encode_AB.fasta >>../data/after_jackhmmer.fasta")
+    # plot_pyvis(ad_fasta, jackhmmer_result)
     # # 5) mafft po raz drugi z usunięciem braków w alignmencie lub inne białka
-    run_mafft("../data/data_total_jackhmmer_sequences_encode.fasta",
-              "../data/data_total_jackhmmer_sequences_encode.aln")
+    run_mafft("../data/after_jackhmmer.fasta",
+              "../data/after_jackhmmer.aln")
     # 6) usunięcie redundancji
