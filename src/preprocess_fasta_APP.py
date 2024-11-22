@@ -383,7 +383,7 @@ def encode_result(fasta_file, encode_fasta_file):
     new.close()
     with open(f"../data/index_result.txt", "w") as f:
         for ids, accs in ids_proteins.items():
-            f.write(f"{ids}\t{accs}\n")
+            f.write(f"{ids}\t{','.join(list(accs))}\n")
 
 
 if __name__ == "__main__":
