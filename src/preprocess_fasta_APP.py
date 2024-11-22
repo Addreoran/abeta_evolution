@@ -188,7 +188,7 @@ def run_jackhmmer(data):
     query_file, db_file, result_folder = data
     print(data)
     os.system(f"jackhmmer -A ../data/{result_folder}/jackhmmer_{query_file}.aln "
-              f"-o ../data/{result_folder}/jackhmmer_{query_file}.txt --cpu 2 ../data/fasta_ab/{query_file}.fasta {db_file}")
+              f"-o ../data/{result_folder}/jackhmmer_{query_file}.txt --cpu 2 ../data/encode_seq/{query_file}.fasta {db_file}")
     pass
 
 
