@@ -471,4 +471,12 @@ if __name__ == "__main__":
     sequences = search_APP_localisation(file_aln="../data/after_jackhmmer_total_sequences.aln",
                                         file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
                                         file_out_aln_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln")
+
+    aln_to_fasta(file_fasta_all="../data/after_jackhmmer_total_sequences.fasta",
+                 file_fasta="../data/after_jackhmmer_total_sequences_almost_final.fasta",
+                 sequences=sequences)
+    get_excluded_names(file_fasta="../data/after_jackhmmer_total_sequences.fasta",
+                       file_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln",
+                       file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+                       analise_file="../data/after_jackhmmer_total_sequences_AB_excluded_acc_analyse.csv")
     # 6) usunięcie redundancji
