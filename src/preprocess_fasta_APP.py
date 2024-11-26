@@ -409,6 +409,75 @@ def download_fasta(file_list):
             f.write(req.text)
 
 
+def divide_by_organizms(file_aln, fasta_file, out_folder):
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    fasta_sequences = {}  # {acc:seq}
+    acc = None
+    ox = 0
+    acc_ox = {}
+    with open(fasta_file) as f:
+        for line in f.readlines():
+            if line.startswith(">"):
+                if acc is not None:
+                    # if ox not in fasta_sequences:
+                    #     fasta_sequences[ox] = {}
+                    fasta_sequences[acc] = sequences
+                    acc_ox[acc] = ox
+                    ox = 0
+                acc = line.split("|")[1]
+                if "OX" in line:
+                    ox = line.split("OX=")[-1].split()[0]
+                sequences = line + "\n"
+            else:
+                sequences += line + "\n"
+    acc_required = set()
+    ox_sets = {}
+    with open(file_aln) as f2:
+        for line in f2.readlines():
+            if line.strip():
+                acc = line.split("|")[1]
+                acc_required.add(acc)
+                if acc_ox.get(acc, "0") not in ox_sets:
+                    ox_sets[acc_ox.get(acc, "0")] = set()
+                ox_sets[acc_ox.get(acc, "0")].add(acc)
+    for ox, accs in ox_sets.items():
+        with open(f"{out_folder}/{ox}.fasta") as f3:
+            for acc in accs:
+                f3.write(fasta_sequences[acc])
+    return ox_sets, fasta_sequences
+
+
+def select_orphans(ox_sets, fasta_sequences):
+    for ox, sets_acc in ox_sets.items():
+        if len(sets_acc) == 1:
+            if "amyloid" in fasta_sequences[sets_acc[0]].lower():
+                pass
+            else:
+                print(ox, fasta_sequences[sets_acc[0]])
+
+
+def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
+    from ete3 import NCBITaxa
+    ncbi = NCBITaxa()
+    ncbi.update_taxonomy_database()
+
+    with open(summary_table, "w") as f:
+        f.write(
+            "tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2]\n")
+        for ox, accs in ox_sets.items():
+            rank = ncbi.get_rank([int(ox)])[int(ox)]
+            protein_no = len(accs)
+            amyloids = set(
+                [i for i in accs if "amyloid" in fasta_sequences[i].lower() or "=APP " in fasta_sequences[i]])
+            app = set([i for i in accs if
+                       "amyloid" in fasta_sequences[i].lower() or "GN=APP ".lower() in fasta_sequences[i].lower()])
+            amyloids_and_app = amyloids.intersection(app)
+            f.write(f"{ox};{rank};{protein_no};{len(amyloids)};{len(app)};{len(amyloids_and_app)}\n")
+
+    pass
+
+
 if __name__ == "__main__":
     # # 1) Pobranie białek powstających z genu APP
     # # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -480,3 +549,20 @@ if __name__ == "__main__":
                        file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
                        analise_file="../data/after_jackhmmer_total_sequences_AB_excluded_acc_analyse.csv")
     # 6) usunięcie redundancji
+    # 6a) podzielić wg gatunków plik z wybranymi sekwencjami jako input:
+    # file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+    # file_fasta="../data/after_jackhmmer_total_sequences.fasta"
+    ox_sets, fasta_sequences = divide_by_organizms(file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+                                                   fasta_file="../data/after_jackhmmer_total_sequences.fasta",
+                                                   out_folder="../data/organism/")
+    # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
+    select_orphans(ox_sets, fasta_sequences)
+    # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
+    #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
+    create_summary_paralogs(ox_sets, fasta_sequences, )
+    # 6d) poszukać czy są paralogami, -> https://inparanoidb.sbc.su.se/about/, https://omabrowser.org/oma/uses/#search_manual_token,
+    #     https://www.orthodb.org/?query=A0A668ASZ3, https://orthology.phylomedb.org/, https://www.flyrnai.org/tools/paralogs/web/,
+    #     http://eggnog6.embl.de/
+
+# todo:
+# https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
