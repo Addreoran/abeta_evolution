@@ -431,6 +431,12 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
                 sequences = line + "\n"
             else:
                 sequences += line + "\n"
+    if acc is not None:
+        # if ox not in fasta_sequences:
+        #     fasta_sequences[ox] = {}
+        fasta_sequences[acc] = sequences
+        acc_ox[acc] = ox
+        ox = 0
     acc_required = set()
     ox_sets = {}
     with open(file_aln) as f2:
@@ -451,10 +457,10 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
 def select_orphans(ox_sets, fasta_sequences):
     for ox, sets_acc in ox_sets.items():
         if len(sets_acc) == 1:
-            if "amyloid" in fasta_sequences[sets_acc[0]].lower():
+            if "amyloid" in fasta_sequences[list(sets_acc)[0]].lower():
                 pass
             else:
-                print(ox, fasta_sequences[sets_acc[0]])
+                print(ox, fasta_sequences[list(sets_acc)[0]])
 
 
 def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
