@@ -442,7 +442,7 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
                     ox_sets[acc_ox.get(acc, "0")] = set()
                 ox_sets[acc_ox.get(acc, "0")].add(acc)
     for ox, accs in ox_sets.items():
-        with open(f"{out_folder}/{ox}.fasta") as f3:
+        with open(f"{out_folder}/{ox}.fasta", "w") as f3:
             for acc in accs:
                 f3.write(fasta_sequences[acc])
     return ox_sets, fasta_sequences
@@ -531,35 +531,35 @@ if __name__ == "__main__":
     # run_mafft("../data/after_jackhmmer.fasta",
     #           "../data/after_jackhmmer.aln")
     # # znaleźć sekwencje białek i podzielić na organizmy
-    download_fasta([
-        "../data/encode_seq/index.txt",
-        "../data/index_result.txt"
-    ])
-    run_mafft("../data/after_jackhmmer_total_sequences.fasta",
-              "../data/after_jackhmmer_total_sequences.aln")
-    sequences = search_APP_localisation(file_aln="../data/after_jackhmmer_total_sequences.aln",
-                                        file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
-                                        file_out_aln_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln")
-
-    aln_to_fasta(file_fasta_all="../data/after_jackhmmer_total_sequences.fasta",
-                 file_fasta="../data/after_jackhmmer_total_sequences_almost_final.fasta",
-                 sequences=sequences)
-    get_excluded_names(file_fasta="../data/after_jackhmmer_total_sequences.fasta",
-                       file_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln",
-                       file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
-                       analise_file="../data/after_jackhmmer_total_sequences_AB_excluded_acc_analyse.csv")
+    # download_fasta([
+    #     "../data/encode_seq/index.txt",
+    #     "../data/index_result.txt"
+    # ])
+    # run_mafft("../data/after_jackhmmer_total_sequences.fasta",
+    #           "../data/after_jackhmmer_total_sequences.aln")
+    # sequences = search_APP_localisation(file_aln="../data/after_jackhmmer_total_sequences.aln",
+    #                                     file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+    #                                     file_out_aln_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln")
+    #
+    # aln_to_fasta(file_fasta_all="../data/after_jackhmmer_total_sequences.fasta",
+    #              file_fasta="../data/after_jackhmmer_total_sequences_almost_final.fasta",
+    #              sequences=sequences)
+    # get_excluded_names(file_fasta="../data/after_jackhmmer_total_sequences.fasta",
+    #                    file_excluded="../data/after_jackhmmer_total_sequences_AB_excluded.aln",
+    #                    file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+    #                    analise_file="../data/after_jackhmmer_total_sequences_AB_excluded_acc_analyse.csv")
     # 6) usunięcie redundancji
     # 6a) podzielić wg gatunków plik z wybranymi sekwencjami jako input:
     # file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
     # file_fasta="../data/after_jackhmmer_total_sequences.fasta"
     ox_sets, fasta_sequences = divide_by_organizms(file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
                                                    fasta_file="../data/after_jackhmmer_total_sequences.fasta",
-                                                   out_folder="../data/organism/")
+                                                   out_folder="../data/organism")
     # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
     select_orphans(ox_sets, fasta_sequences)
     # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
     #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
-    create_summary_paralogs(ox_sets, fasta_sequences, )
+    create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
     # 6d) poszukać czy są paralogami, -> https://inparanoidb.sbc.su.se/about/, https://omabrowser.org/oma/uses/#search_manual_token,
     #     https://www.orthodb.org/?query=A0A668ASZ3, https://orthology.phylomedb.org/, https://www.flyrnai.org/tools/paralogs/web/,
     #     http://eggnog6.embl.de/
