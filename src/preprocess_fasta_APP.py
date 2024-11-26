@@ -455,12 +455,13 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
 
 
 def select_orphans(ox_sets, fasta_sequences):
-    for ox, sets_acc in ox_sets.items():
-        if len(sets_acc) == 1:
-            if "amyloid" in fasta_sequences[list(sets_acc)[0]].lower():
-                pass
-            else:
-                print(ox, fasta_sequences[list(sets_acc)[0]])
+    with open("../data/orphans_without_app", "w") as f:
+        for ox, sets_acc in ox_sets.items():
+            if len(sets_acc) == 1:
+                if "amyloid" in fasta_sequences[list(sets_acc)[0]].lower():
+                    pass
+                else:
+                    f.write(f"{ox}; {fasta_sequences[list(sets_acc)[0]]}")
 
 
 def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
@@ -472,7 +473,7 @@ def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
         f.write(
             "tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2]\n")
         for ox, accs in ox_sets.items():
-            rank = ncbi.get_rank([int(ox)])[int(ox)]
+            rank = ncbi.get_rank([int(ox)]).get(int(ox), "")
             protein_no = len(accs)
             amyloids = set(
                 [i for i in accs if "amyloid" in fasta_sequences[i].lower() or "=APP " in fasta_sequences[i]])
