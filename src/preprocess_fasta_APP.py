@@ -602,40 +602,43 @@ def encode_mafft_find_amyloid_per_organism(folder):
     for aa in sequence:
         pattern += fr"{aa}[-]*"
     pattern=pattern[:-4]
-    for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
-        with open(folder + file) as f:
-            sequences = {}
-            for line in f.readlines():
-                if line.strip() and "CLUSTAL" not in line and "*" not in line and ":" not in line:
-                    # print(line, file)
-                    acc, sequence_acc = line.strip().split()
-                    if acc not in sequences:
-                        sequences[acc] = sequence_acc
-                    else:
-                        sequences[acc] += sequence_acc
-                    if acc_human in acc:
-                        acc_human = acc
-            if not sequences.keys():
-                continue
-            # print(file, sequences.keys())
-            res = re.search(pattern, sequences[acc_human])
-            begin = res.start()
-            end = res.end()
-            sequences = {i: j[begin:end] for i, j in sequences.items()}
-            rev_seq = {}
-            for acc, seq in sequences.items():
-                if seq not in rev_seq:
-                    rev_seq[seq] = set()
-                rev_seq[seq].add(acc)
-            if len(rev_seq) > 2:
-                for seq, acc in rev_seq.items():
-                    print(file, seq, acc)
-                input()
-            with open(folder + "encoded_" + file, "w") as f:
-                for seq, acc in rev_seq.items():
-                    f.write(f"{set_id}\t{seq}\n")
-                    index_accs[set_id] = acc
-                    set_id += 1
+    with open("./data/problematic_organism.csv", "w") as o:
+        for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
+            with open(folder + file) as f:
+                sequences = {}
+                for line in f.readlines():
+                    if line.strip() and "CLUSTAL" not in line and "*" not in line and ":" not in line:
+                        # print(line, file)
+                        acc, sequence_acc = line.strip().split()
+                        if acc not in sequences:
+                            sequences[acc] = sequence_acc
+                        else:
+                            sequences[acc] += sequence_acc
+                        if acc_human in acc:
+                            acc_human = acc
+                if not sequences.keys():
+                    continue
+                # print(file, sequences.keys())
+                res = re.search(pattern, sequences[acc_human])
+                begin = res.start()
+                end = res.end()
+                sequences = {i: j[begin:end] for i, j in sequences.items()}
+                rev_seq = {}
+                for acc, seq in sequences.items():
+                    if seq not in rev_seq:
+                        rev_seq[seq] = set()
+                    rev_seq[seq].add(acc)
+                if len(rev_seq) > 2:
+
+                    for seq, acc in rev_seq.items():
+                        o.write(f"{file};{seq};{acc}\n")
+                        print(file, seq, acc)
+                    input()
+                with open(folder + "encoded_" + file, "w") as f:
+                    for seq, acc in rev_seq.items():
+                        f.write(f"{set_id}\t{seq}\n")
+                        index_accs[set_id] = acc
+                        set_id += 1
     with open(folder + "index.csv", "w") as f:
         for id_acc, accs in index_accs.items():
             f.write(f"{id_acc}\t{','.join(list(accs))}\n")
