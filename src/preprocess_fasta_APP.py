@@ -628,8 +628,8 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 rev_seq[seq].add(acc)
             if len(rev_seq) > 1:
                 for seq, acc in rev_seq.items():
-                    print(folder, seq, acc)
-                    input()
+                    print(file, seq, acc)
+                input()
             with open(folder + "encoded_" + file, "w") as f:
                 for seq, acc in rev_seq.items():
                     f.write(f"{set_id}\t{seq}\n")
