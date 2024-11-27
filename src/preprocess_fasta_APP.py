@@ -517,23 +517,26 @@ def del_other_proteins(fasta_seq, todel):
         for acc, protein in fasta_seq.items():
             header = protein.split("\n")[0]
             no_id += 1
-            if "gn=" and "amyloid" not in header.lower():
-                print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
-                print(no_proteins, no_id, "gene", header)
-                to_rem = input()
+            if acc not in todel:
+                if "gn=" and "amyloid" not in header.lower():
+                    print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
+                    print(no_proteins, no_id, "gene", header)
 
-                if to_rem == "T":
-                    f.write(acc + "\n")
-                    todel.add(acc)
+                    to_rem = input()
 
-            elif "amyloid" not in header.lower():
-                print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
+                    if to_rem == "T":
+                        f.write(acc + "\n")
+                        todel.add(acc)
 
-                print(no_proteins, no_id, "not amyoid name", header)
-                if to_rem == "T":
-                    f.write(acc + "\n")
-                    todel.add(acc)
+                elif "amyloid" not in header.lower():
+                    print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
+
+                    print(no_proteins, no_id, "not amyoid name", header)
+                    if to_rem == "T":
+                        f.write(acc + "\n")
+                        todel.add(acc)
     for i in todel:
+        print(i in fasta_seq, i)
         del fasta_seq[i]
     return fasta_seq, todel
 
