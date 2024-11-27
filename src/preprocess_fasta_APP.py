@@ -745,6 +745,9 @@ if __name__ == "__main__":
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
     make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
+    aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
+    aln_encoded = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
+    print("wypadły???", aln_encoded - aln)
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
