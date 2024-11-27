@@ -511,12 +511,14 @@ def load_todel_proteins(fasta_proteins):
 def del_other_proteins(fasta_seq, todel):
     if not todel:
         todel = []
+    no_proteins = len(fasta_seq)
+    no_id = 0
     with open("../data/excluded_protein_experts.fasta", "w") as f:
         for acc, protein in fasta_seq.items():
             header = protein.split("\n")[0]
             if "gn=" and "amyloid" not in header.lower():
                 print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
-                print("gene", header)
+                print(no_proteins, no_id, "gene", header)
                 to_rem = input()
 
                 if to_rem == "T":
@@ -524,7 +526,9 @@ def del_other_proteins(fasta_seq, todel):
                     todel.append(acc)
 
             elif "amyloid" not in header.lower():
-                print("not amyoid name", header)
+                print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
+
+                print(no_proteins, no_id, "not amyoid name", header)
                 if to_rem == "T":
                     f.write(acc + "\n")
                     todel.append(acc)
