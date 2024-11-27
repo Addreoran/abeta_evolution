@@ -603,8 +603,8 @@ def encode_mafft_find_amyloid_per_organism(folder):
         pattern += fr"{aa}[-]*"
     for file in [i for i in os.listdir(folder) if "aln" in i]:
         with open(folder + file) as f:
+            sequences = {}
             for line in f.readlines():
-                sequences = {}
                 if line.strip() and "CLUSTAL" not in line and "*" not in line and ":" not in line:
                     print(line, file)
                     acc, sequence_acc = line.strip().split()
