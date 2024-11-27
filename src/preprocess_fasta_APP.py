@@ -736,7 +736,7 @@ if __name__ == "__main__":
     # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
     todel = load_todel_proteins(fasta_sequences)
     # fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
-    # update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
+    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
 
     # isoform_db = load_isoforms("../data/isoforms.csv")
