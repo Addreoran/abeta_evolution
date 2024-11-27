@@ -606,6 +606,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
             for line in f.readline():
                 sequences = {}
                 if line.strip() and "CLUSTAL" not in line:
+                    print(line)
                     acc, sequence_acc = line.strip().split()
                     if acc not in sequences:
                         sequences[acc] = sequence_acc
@@ -727,14 +728,14 @@ if __name__ == "__main__":
     # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
     todel = load_todel_proteins(fasta_sequences)
     # fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
-    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
+    # update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
 
     # isoform_db = load_isoforms("../data/isoforms.csv")
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    make_mafft_per_organism("../data/organism_updated/")
+    # make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
 
 # todo:
