@@ -480,7 +480,7 @@ def select_orphans(ox_sets, fasta_sequences):
 def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
     from ete3 import NCBITaxa
     ncbi = NCBITaxa()
-    ncbi.update_taxonomy_database()
+    # ncbi.update_taxonomy_database()
 
     with open(summary_table, "w") as f:
         f.write(
@@ -606,7 +606,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
             for line in f.readline():
                 sequences = {}
                 if line.strip() and "CLUSTAL" not in line:
-                    print(line)
+                    print(line, file)
                     acc, sequence_acc = line.strip().split()
                     if acc not in sequences:
                         sequences[acc] = sequence_acc
@@ -717,7 +717,7 @@ if __name__ == "__main__":
     # todo: brakuje w plikach 3886 i sekwencji A0AAN9QLS4
     # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
     #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
-    create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
+    # create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
     # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
     # usunąć ophany, które nie są abetami, tyko innymi białkami
 
