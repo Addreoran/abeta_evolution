@@ -430,9 +430,9 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
                 acc = line.split("|")[1]
                 if "OX" in line:
                     ox = line.split("OX=")[-1].split()[0]
-                sequences = line + "\n"
+                sequences = line
             else:
-                sequences += line + "\n"
+                sequences += line
     if acc is not None:
         # if ox not in fasta_sequences:
         #     fasta_sequences[ox] = {}
@@ -735,7 +735,7 @@ if __name__ == "__main__":
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    # make_mafft_per_organism("../data/organism_updated/")
+    make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
 
 # todo:
