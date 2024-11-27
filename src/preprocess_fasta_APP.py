@@ -455,6 +455,9 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
 
 
 def select_orphans(ox_sets, fasta_sequences):
+    ox_todel=[]
+    acc_todel=[]
+
     with open("../data/orphans_without_app.csv", "w") as f:
         for ox, sets_acc in ox_sets.items():
             if len(sets_acc) == 1:
@@ -463,8 +466,12 @@ def select_orphans(ox_sets, fasta_sequences):
                     pass
                 else:
                     f.write(f"{ox}; {fasta_sequences[list(sets_acc)[0]]}")
-                    del ox_sets[ox]
-                    del fasta_sequences[list(sets_acc)[0]]
+                    acc_todel.append(list(sets_acc)[0])
+                    ox_todel.append(ox)
+    for ox in ox_todel:
+        del ox_sets[ox]
+    for acc in acc_todel:
+        del fasta_sequences[acc]
     return ox_sets, fasta_sequences
 
 
