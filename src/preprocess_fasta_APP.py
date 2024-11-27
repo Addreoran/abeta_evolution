@@ -513,7 +513,11 @@ def del_other_proteins(fasta_seq, todel):
         todel = set()
     no_proteins = len(fasta_seq)
     no_id = 0
-    with open("../data/excluded_protein_experts.fasta", "w") as f:
+    if os.path.exists("../data/excluded_protein_experts.fasta"):
+        mode = "a"
+    else:
+        mode = "w"
+    with open("../data/excluded_protein_experts.fasta", mode) as f:
         for acc, protein in fasta_seq.items():
             header = protein.split("\n")[0]
             no_id += 1
@@ -547,9 +551,50 @@ def update_organisms(fasta_sequences, ox_sets, out_folder):
         os.mkdir(out_folder)
     for ox, accs in ox_sets.items():
         with open(f"{out_folder}/{ox}.fasta", "w") as f:
+            f.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
             for acc in accs:
                 if acc in fasta_sequences:
                     f.write(fasta_sequences[acc])
+
+
+def load_isoforms(isoform_file):
+    isoform_db = {}
+    if os.path.exists(isoform_file):
+        with open(isoform_file) as f:
+            for line in f.readlines():
+                if line.strip():
+                    acc, isoforms = line.strip().split(";")
+                    isoforms = isoforms.split(",")
+                    isoform_db[acc] = isoforms
+    return isoform_db
+
+
+def download_isoforms(isoform_db, isoform_file, fasta_sequences):
+    if os.path.exists(isoform_file):
+        mode = "a"
+    else:
+        mode = "w"
+    with open(isoform_file, mode) as f:
+        for acc, fasta in fasta_sequences.items():
+            if acc not in isoform_db:
+                req = requests.get(
+                    f"https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession={acc}&format=tsv")
+                for line in req.text.split("\n"):
+                    print(line)
+
+
+def make_mafft_per_organism(folder):
+    files = os.listdir(folder)
+    for file in files:
+        if "index" not in file:
+            run_mafft(folder + file, folder + file.split(".")[0] + ".aln")
+
+
+def encode_mafft_find_amyloid_per_organism(folder):
+    # {folder}index.csv
+
+
+    pass
 
 
 if __name__ == "__main__":
@@ -645,8 +690,13 @@ if __name__ == "__main__":
     # fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
     update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
+
+    # isoform_db = load_isoforms("../data/isoforms.csv")
+    # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
+    make_mafft_per_organism("../data/organism_updated/")
+    encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
