@@ -601,6 +601,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
     index_accs = {}
     for aa in sequence:
         pattern += fr"{aa}[-]*"
+    pattern=pattern[:-4]
     for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
         with open(folder + file) as f:
             sequences = {}
@@ -626,7 +627,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 if seq not in rev_seq:
                     rev_seq[seq] = set()
                 rev_seq[seq].add(acc)
-            if len(rev_seq) > 1:
+            if len(rev_seq) > 2:
                 for seq, acc in rev_seq.items():
                     print(file, seq, acc)
                 input()
