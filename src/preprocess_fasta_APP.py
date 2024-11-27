@@ -516,6 +516,7 @@ def del_other_proteins(fasta_seq, todel):
     with open("../data/excluded_protein_experts.fasta", "w") as f:
         for acc, protein in fasta_seq.items():
             header = protein.split("\n")[0]
+            no_id+=1
             if "gn=" and "amyloid" not in header.lower():
                 print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
                 print(no_proteins, no_id, "gene", header)
