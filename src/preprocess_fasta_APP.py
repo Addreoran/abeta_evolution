@@ -586,7 +586,7 @@ def download_isoforms(isoform_db, isoform_file, fasta_sequences):
 
 
 def make_mafft_per_organism(folder):
-    files = os.listdir(folder)
+    files = [i for i in os.listdir(folder) if "fasta" in i]
     for file in files:
         if "index" not in file:
             run_mafft(folder + file, folder + file.split(".")[0] + ".aln")
@@ -601,7 +601,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
     index_accs = {}
     for aa in sequence:
         pattern += fr"{aa}[-]*"
-    pattern=pattern[:-4]
+    pattern = pattern[:-4]
     with open("./data/problematic_organism.csv", "w") as o:
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
@@ -743,7 +743,7 @@ if __name__ == "__main__":
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    # make_mafft_per_organism("../data/organism_updated/")
+    make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
 
 # todo:
