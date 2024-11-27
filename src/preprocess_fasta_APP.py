@@ -606,7 +606,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
             sequences = {}
             for line in f.readlines():
                 if line.strip() and "CLUSTAL" not in line and "*" not in line and ":" not in line:
-                    print(line, file)
+                    # print(line, file)
                     acc, sequence_acc = line.strip().split()
                     if acc not in sequences:
                         sequences[acc] = sequence_acc
@@ -616,7 +616,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                         acc_human = acc
             if not sequences.keys():
                 continue
-            print(file, sequences.keys())
+            # print(file, sequences.keys())
             res = re.search(pattern, sequences[acc_human])
             begin = res.start()
             end = res.end()
@@ -629,6 +629,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
             if len(rev_seq) > 1:
                 for seq, acc in rev_seq.items():
                     print(folder, seq, acc)
+                    input()
             with open(folder + "encoded_" + file, "w") as f:
                 for seq, acc in rev_seq.items():
                     f.write(f"{set_id}\t{seq}\n")
