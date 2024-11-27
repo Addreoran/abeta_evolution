@@ -498,12 +498,13 @@ def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
 
 def load_todel_proteins(fasta_proteins):
     todel = []
-    with open("../data/excluded_protein_experts.fasta", "w") as f:
-        for line in f.readlines():
-            acc = line.strip()
-            if acc in fasta_proteins:
-                del fasta_proteins[acc]
-                todel.append(acc)
+    if os.path.exists("../data/excluded_protein_experts.fasta"):
+        with open("../data/excluded_protein_experts.fasta") as f:
+            for line in f.readlines():
+                acc = line.strip()
+                if acc in fasta_proteins:
+                    del fasta_proteins[acc]
+                    todel.append(acc)
     return todel
 
 
