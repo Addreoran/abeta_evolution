@@ -537,7 +537,8 @@ def del_other_proteins(fasta_seq, todel):
                         todel.add(acc)
     for i in todel:
         print(i in fasta_seq, i)
-        del fasta_seq[i]
+        if i in fasta_seq:
+            del fasta_seq[i]
     return fasta_seq, todel
 
 
