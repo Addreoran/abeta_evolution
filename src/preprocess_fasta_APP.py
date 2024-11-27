@@ -464,7 +464,7 @@ def select_orphans(ox_sets, fasta_sequences):
                 else:
                     f.write(f"{ox}; {fasta_sequences[list(sets_acc)[0]]}")
                     del ox_sets[ox]
-                    del fasta_sequences[fasta_sequences[list(sets_acc)[0]]]
+                    del fasta_sequences[list(sets_acc)[0]]
     return ox_sets, fasta_sequences
 
 
