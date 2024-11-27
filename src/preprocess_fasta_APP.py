@@ -498,7 +498,7 @@ def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
 
 def load_todel_proteins(fasta_proteins):
     todel = []
-    with open("../data/excluded_protein_experts.fasta") as f:
+    with open("../data/excluded_protein_experts.fasta", "w") as f:
         for line in f.readlines():
             acc = line.strip()
             if acc in fasta_proteins:
@@ -632,6 +632,7 @@ if __name__ == "__main__":
     fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
     update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
+
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
 
 # todo:
