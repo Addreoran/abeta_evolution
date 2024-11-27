@@ -46,6 +46,8 @@ def search_APP_localisation(file_aln, file_out_aln, file_out_aln_excluded):
                     acc_human = acc
     # 2) znaleźć lokalizację
     pattern = r""
+    #     sequence = "DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA"
+    #     acc_human = "P05067"
     for aa in sequence:
         pattern += fr"{aa}[-]*"
     res = re.search(pattern, sequences[acc_human])
@@ -592,8 +594,45 @@ def make_mafft_per_organism(folder):
 
 def encode_mafft_find_amyloid_per_organism(folder):
     # {folder}index.csv
-
-
+    set_id = 0
+    sequence = "DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA"
+    acc_human = "canonical_seq"
+    pattern = r""
+    index_accs = {}
+    for aa in sequence:
+        pattern += fr"{aa}[-]*"
+    for file in os.listdir(folder):
+        with open(folder + file) as f:
+            for line in f.readline():
+                sequences = {}
+                if line.strip() and "CLUSTAL" not in line:
+                    acc, sequence_acc = line.strip().split()
+                    if acc not in sequences:
+                        sequences[acc] = sequence_acc
+                    else:
+                        sequences[acc] += sequence_acc
+                    if acc_human in acc:
+                        acc_human = acc
+            res = re.search(pattern, sequences[acc_human])
+            begin = res.start()
+            end = res.end()
+            sequences = {i: j[begin:end] for i, j in sequences.items()}
+            rev_seq = {}
+            for acc, seq in sequences.items():
+                if seq not in rev_seq:
+                    rev_seq[seq] = set()
+                rev_seq[seq].add(acc)
+            if len(rev_seq) > 1:
+                for seq, acc in rev_seq.items():
+                    print(folder, seq, acc)
+            with open(folder + "encoded_" + file, "w") as f:
+                for seq, acc in rev_seq.items():
+                    f.write(f"{set_id}\t{seq}\n")
+                    index_accs[set_id] = acc
+                    set_id += 1
+    with open(folder + "index.csv", "w") as f:
+        for id_acc, accs in index_accs.items():
+            f.write(f"{id_acc}\t{','.join(list(accs))}\n")
     pass
 
 
