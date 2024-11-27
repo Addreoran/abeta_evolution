@@ -455,8 +455,8 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
 
 
 def select_orphans(ox_sets, fasta_sequences):
-    ox_todel=[]
-    acc_todel=[]
+    ox_todel = []
+    acc_todel = []
 
     with open("../data/orphans_without_app.csv", "w") as f:
         for ox, sets_acc in ox_sets.items():
@@ -515,8 +515,10 @@ def del_other_proteins(fasta_seq, todel):
         for acc, protein in fasta_seq.items():
             header = protein.split("\n")[0]
             if "gn=" and "amyloid" not in header.lower():
+                print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
                 print("gene", header)
                 to_rem = input()
+
                 if to_rem == "T":
                     f.write(acc + "\n")
                     todel.append(acc)
@@ -618,6 +620,7 @@ if __name__ == "__main__":
     ox_sets, fasta_sequences = divide_by_organizms(file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
                                                    fasta_file="../data/after_jackhmmer_total_sequences.fasta",
                                                    out_folder="../data/organism")
+    # todo: brakuje w plikach 3886 i sekwencji A0AAN9QLS4
     # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
     #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
     create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
@@ -633,7 +636,7 @@ if __name__ == "__main__":
     fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
     update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
-
+    # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
 
 # todo:
