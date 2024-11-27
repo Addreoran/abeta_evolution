@@ -455,13 +455,17 @@ def divide_by_organizms(file_aln, fasta_file, out_folder):
 
 
 def select_orphans(ox_sets, fasta_sequences):
-    with open("../data/orphans_without_app", "w") as f:
+    with open("../data/orphans_without_app.csv", "w") as f:
         for ox, sets_acc in ox_sets.items():
             if len(sets_acc) == 1:
-                if "amyloid" in fasta_sequences[list(sets_acc)[0]].lower():
+                if "amyloid" in fasta_sequences[list(sets_acc)[0]].lower() or "gn=app " in fasta_sequences[
+                    list(sets_acc)[0]].lower():
                     pass
                 else:
                     f.write(f"{ox}; {fasta_sequences[list(sets_acc)[0]]}")
+                    del ox_sets[os]
+                    del fasta_sequences[fasta_sequences[list(sets_acc)[0]]]
+    return ox_sets, fasta_sequences
 
 
 def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
@@ -482,6 +486,44 @@ def create_summary_paralogs(ox_sets, fasta_sequences, summary_table):
             amyloids_and_app = amyloids.intersection(app)
             f.write(f"{ox};{rank};{protein_no};{len(amyloids)};{len(app)};{len(amyloids_and_app)}\n")
 
+    pass
+
+
+def load_todel_proteins(fasta_proteins):
+    todel = []
+    with open("../data/excluded_protein_experts.fasta") as f:
+        for line in f.readlines():
+            acc = line.strip()
+            if acc in fasta_proteins:
+                del fasta_proteins[acc]
+                todel.append(acc)
+    return todel
+
+
+def del_other_proteins(fasta_seq, todel):
+    if not todel:
+        todel = []
+    with open("../data/excluded_protein_experts.fasta", "w") as f:
+        for acc, protein in fasta_seq.items():
+            header = protein.split("\n")[0]
+            if "gn=" and "amyloid" not in header.lower():
+                print("gene", header)
+                to_rem = input()
+                if to_rem == "T":
+                    f.write(acc + "\n")
+                    todel.append(acc)
+
+            elif "amyloid" not in header.lower():
+                print("not amyoid name", header)
+                if to_rem == "T":
+                    f.write(acc + "\n")
+                    todel.append(acc)
+    for i in todel:
+        del fasta_seq[i]
+    return fasta_seq, todel
+
+
+def update_organisms(todel, out_folder):
     pass
 
 
@@ -562,14 +604,22 @@ if __name__ == "__main__":
     ox_sets, fasta_sequences = divide_by_organizms(file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
                                                    fasta_file="../data/after_jackhmmer_total_sequences.fasta",
                                                    out_folder="../data/organism")
-    # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
-    select_orphans(ox_sets, fasta_sequences)
     # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
     #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
     create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
+    # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
+    # usunąć ophany, które nie są abetami, tyko innymi białkami
+
+    ox_sets, fasta_sequences = select_orphans(ox_sets, fasta_sequences)
     # 6d) poszukać czy są paralogami, -> https://inparanoidb.sbc.su.se/about/, https://omabrowser.org/oma/uses/#search_manual_token,
-    #     https://www.orthodb.org/?query=A0A668ASZ3, https://orthology.phylomedb.org/, https://www.flyrnai.org/tools/paralogs/web/,
+    #     https://www.orthodb.org/?query=A0A8C2Q5C9, https://orthology.phylomedb.org/, https://www.flyrnai.org/tools/paralogs/web/,
     #     http://eggnog6.embl.de/
+    # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
+    todel = load_todel_proteins(fasta_sequences)
+    fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
+    update_organisms(todel=todel, out_folder="../data/organism")
+    # pobrać izoformy
+    # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
