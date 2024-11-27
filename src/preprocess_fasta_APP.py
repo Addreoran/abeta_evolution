@@ -523,8 +523,14 @@ def del_other_proteins(fasta_seq, todel):
     return fasta_seq, todel
 
 
-def update_organisms(todel, out_folder):
-    pass
+def update_organisms(fasta_sequences, ox_sets, out_folder):
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    for ox, accs in ox_sets.items():
+        with open(f"{out_folder}/{ox}.fasta", "w") as f:
+            for acc in accs:
+                if acc in fasta_sequences:
+                    f.write(fasta_sequences)
 
 
 if __name__ == "__main__":
@@ -617,7 +623,7 @@ if __name__ == "__main__":
     # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
     todel = load_todel_proteins(fasta_sequences)
     fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
-    update_organisms(todel=todel, out_folder="../data/organism")
+    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
 
