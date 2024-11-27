@@ -614,7 +614,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                         sequences[acc] += sequence_acc
                     if acc_human in acc:
                         acc_human = acc
-            print(sequences.keys())
+            print(file, sequences.keys())
             res = re.search(pattern, sequences[acc_human])
             begin = res.start()
             end = res.end()
