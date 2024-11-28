@@ -645,6 +645,51 @@ def encode_mafft_find_amyloid_per_organism(folder):
     pass
 
 
+def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
+    sequence = "DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA"
+    acc_human = "canonical"
+    sequences = {}
+    with open(file_aln) as f:
+        # 1 otworzyć i spisać sekwencje
+        for line in f.readlines():
+            if line.strip() and "CLUSTAL" not in line:
+                acc, sequence_acc = line.strip().split()
+                if acc not in sequences:
+                    sequences[acc] = sequence_acc
+                else:
+                    sequences[acc] += sequence_acc
+                if acc_human in acc:
+                    acc_human = acc
+    # 2) znaleźć lokalizację
+    pattern = r""
+    #     sequence = "DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA"
+    #     acc_human = "P05067"
+    for aa in sequence:
+        pattern += fr"{aa}[-]*"
+    res = re.search(pattern, sequences[acc_human])
+    begin = res.start()
+    end = res.end()
+    sequences = {i: j[begin:end] for i, j in sequences.items()}
+    # 3) zapisać tylko niezbędne alignmenty
+    sequence_motif = "HDSGYEVHH"
+    pattern2 = r""
+    for aa in sequence_motif:
+        pattern2 += fr"{aa}[-]*"
+    res = re.search(pattern2, sequences[acc_human])
+    begin = res.start()
+    end = res.end()
+    sequences_included = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) > 5}
+    sequences_excluded = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) < 5}
+
+    with open(file_out_aln, "w") as f:
+        for acc, sequence_AB in sequences_included.items():
+            f.write(f"{acc}\t{sequence_AB}\n")
+    with open(file_out_aln_excluded, "w") as f:
+        for acc, sequence_AB in sequences_excluded.items():
+            f.write(f"{acc}\t{sequence_AB}\n")
+    return sequences
+
+
 if __name__ == "__main__":
     # # 1) Pobranie białek powstających z genu APP
     # # https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28gene%3AAPP%29+AND+%28protein_name%3AAmyloid-beta%29%29
@@ -759,8 +804,8 @@ if __name__ == "__main__":
                         canonical = True
                     f2.write(line.strip() + "\n")
     run_mafft(file="./data/orthodb_fix.fasta", out="./data/orthodb.aln")
-    search_APP_localisation(file_aln="./data/orthodb.aln", file_out_aln="./data/orthodb_ok.aln",
-                            file_out_aln_excluded="./data/orthodb_err.aln")
+    search_orthodb_localisation(file_aln="./data/orthodb.aln", file_out_aln="./data/orthodb_ok.aln",
+                                file_out_aln_excluded="./data/orthodb_err.aln")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
