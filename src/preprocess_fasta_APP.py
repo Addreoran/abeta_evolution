@@ -678,8 +678,8 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     res = re.search(pattern2, sequences[acc_human])
     begin = res.start()
     end = res.end()
-    sequences_included = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) > 5}
-    sequences_excluded = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) < 5}
+    sequences_included = {i: j for i, j in sequences.items() if j[begin:end][0]!="-" and j[begin:end][7]!="-" and j[begin:end][8]!="-"}
+    sequences_excluded = {i: j for i, j in sequences.items() if j[begin:end][0]=="-" or j[begin:end][7]=="-" or j[begin:end][8]=="-"}
 
     with open(file_out_aln, "w") as f:
         for acc, sequence_AB in sequences_included.items():
@@ -812,6 +812,8 @@ if __name__ == "__main__":
                  file_fasta="../data/orthodb_ok.fasta",
                  sequences=sequences)
     run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
+    sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln", file_out_aln="../data/orthodb_ok2.aln",
+                                            file_out_aln_excluded="../data/orthodb_err2.aln")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
