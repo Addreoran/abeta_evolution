@@ -675,6 +675,7 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     pattern2 = r""
     for aa in sequence_motif:
         pattern2 += fr"{aa}[-]*"
+    pattern2 = pattern2[:-4]
     res = re.search(pattern2, sequences[acc_human])
     begin = res.start()
     end = res.end()
@@ -683,7 +684,10 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
 
     with open(file_out_aln, "w") as f:
         for acc, sequence_AB in sequences_included.items():
-            f.write(f"{acc}\t{sequence_AB}\n")
+            if sequence_AB[0] != "-" and sequence_AB[-1] != "-":
+                f.write(f"{acc}\t{sequence_AB}\n")
+            else:
+                sequences_excluded[acc] = sequence_AB
     with open(file_out_aln_excluded, "w") as f:
         for acc, sequence_AB in sequences_excluded.items():
             f.write(f"{acc}\t{sequence_AB}\n")
@@ -812,7 +816,8 @@ if __name__ == "__main__":
                  file_fasta="../data/orthodb_ok.fasta",
                  sequences=sequences)
     run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
-    sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln", file_out_aln="../data/orthodb_ok2.aln",
+    sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln",
+                                            file_out_aln="../data/orthodb_ok2.aln",
                                             file_out_aln_excluded="../data/orthodb_err2.aln")
 
 # todo:
