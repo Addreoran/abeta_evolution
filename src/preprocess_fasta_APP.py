@@ -714,8 +714,17 @@ def get_organisms(fasta_file, aln_file):
     organisms_new = {dataset.get(i, "-") for i in acc if acc != "1"}
     organisms_old = set(
         [i.split(".")[0] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
-    print(organisms_old - organisms_new)
+    lack = organisms_old - organisms_new
+    proteins = [i for i, j in dataset.items() if j in lack]
+    print(proteins)
     print(organisms_new - organisms_old)
+    uniq_alignmens = open("../data/unique_orthodb.aln", "w")
+    with open(aln_file) as f:
+        for line in f.readlines():
+            acc = line.split()[0]
+            if acc in proteins:
+                uniq_alignmens.write(line.strip() + "\n")
+    uniq_alignmens.close()
 
 
 if __name__ == "__main__":
