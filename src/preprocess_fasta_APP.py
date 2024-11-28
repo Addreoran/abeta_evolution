@@ -803,6 +803,8 @@ if __name__ == "__main__":
                     if "canonical" in line:
                         canonical = True
                     f2.write(line.strip() + "\n")
+            if not canonical:
+                f2.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
     run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
     search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
                                 file_out_aln_excluded="../data/orthodb_err.aln")
