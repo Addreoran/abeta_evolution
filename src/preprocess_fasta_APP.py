@@ -751,16 +751,16 @@ if __name__ == "__main__":
     print("wypadły???", aln_encoded - aln, aln - aln_encoded)
 
     canonical = False
-    with (open("../data/orthodb.fasta") as f):
-        with open("../data/orthodb_fix.fasta", "w") as f2:
+    with (open("./data/orthodb.fasta") as f):
+        with open("./data/orthodb_fix.fasta", "w") as f2:
             for line in f.readlines():
                 if line.strip():
                     if "canonical" in line:
                         canonical = True
                     f2.write(line.strip() + "\n")
-    run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
-    search_APP_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
-                            file_out_aln_excluded="../data/orthodb_err.aln")
+    run_mafft(file="./data/orthodb_fix.fasta", out="./data/orthodb.aln")
+    search_APP_localisation(file_aln="./data/orthodb.aln", file_out_aln="./data/orthodb_ok.aln",
+                            file_out_aln_excluded="./data/orthodb_err.aln")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
