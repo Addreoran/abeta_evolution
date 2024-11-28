@@ -666,7 +666,7 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     #     acc_human = "P05067"
     for aa in sequence:
         pattern += fr"{aa}[-]*"
-    res = re.search(pattern, sequences[acc_human])
+    res = re.search(pattern[:-4], sequences[acc_human])
     begin = res.start()
     end = res.end()
     sequences = {i: j[begin:end] for i, j in sequences.items()}
@@ -806,8 +806,12 @@ if __name__ == "__main__":
             if not canonical:
                 f2.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
     run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
-    search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
-                                file_out_aln_excluded="../data/orthodb_err.aln")
+    sequences = search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
+                                            file_out_aln_excluded="../data/orthodb_err.aln")
+    aln_to_fasta(file_fasta_all="../data/orthodb_fix.fasta",
+                 file_fasta="../data/orthodb_ok.fasta",
+                 sequences=sequences)
+    run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
