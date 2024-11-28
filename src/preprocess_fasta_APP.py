@@ -677,19 +677,25 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
         pattern2 += fr"{aa}[-]*"
     pattern2 = pattern2[:-4]
     res = re.search(pattern2, sequences[acc_human])
-    begin = res.start()
-    end = res.end()
+    sequence_motif = "HDSGYEVH"
+    pattern3 = r""
+    for aa in sequence_motif:
+        pattern3 += fr"{aa}[-]*"
+    pattern3 = pattern3[:-4]
+    res3 = re.search(pattern3, sequences[acc_human])
+    begin3 = res.start()
+    end3 = res.end()
     sequences_included = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) >= 5}
     sequences_excluded = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) < 5}
-
     with open(file_out_aln, "w") as f:
         for acc, sequence_AB in sequences_included.items():
-            if sequence_AB[0] != "-" and sequence_AB[-1] != "-":
+            if sequence_AB[0] != "-" and (sequence_AB[-1] != "-" or sequence_AB[begin3:end3] - 1] != "-"):
                 f.write(f"{acc}\t{sequence_AB}\n")
             else:
                 sequences_excluded[acc] = sequence_AB
-    with open(file_out_aln_excluded, "w") as f:
-        for acc, sequence_AB in sequences_excluded.items():
+            with open(file_out_aln_excluded, "w") as f:
+                for
+            acc, sequence_AB in sequences_excluded.items():
             f.write(f"{acc}\t{sequence_AB}\n")
     return sequences
 
