@@ -743,12 +743,24 @@ if __name__ == "__main__":
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    make_mafft_per_organism("../data/organism_updated/")
-    encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
+    # make_mafft_per_organism("../data/organism_updated/")
+    # encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
     aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
     aln_encoded = set(
         [i.split("_")[1] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
     print("wypadły???", aln_encoded - aln, aln - aln_encoded)
+
+    canonical = False
+    with (open("../data/orthodb.fasta") as f):
+        with open("../data/orthodb_fix.fasta", "w") as f2:
+            for line in f.readlines():
+                if line.strip():
+                    if "canonical" in line:
+                        canonical = True
+                    f2.write(line.strip() + "\n")
+    run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
+    search_APP_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
+                            file_out_aln_excluded="../data/orthodb_err.aln")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
