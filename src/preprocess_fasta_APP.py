@@ -711,7 +711,7 @@ def get_organisms(fasta_file, aln_file):
     with open(aln_file) as f:
         for line in f.readlines():
             acc = line.split()[0]
-    organisms_new = {dataset[i] for i in acc if acc != "1"}
+    organisms_new = {dataset.get(i, "-") for i in acc if acc != "1"}
     organisms_old = set([i.split(".")[0] for i in os.listdir("../data/organism_updated/") if "aln" in i])
     print(organisms_old - organisms_new)
     print(organisms_new - organisms_old)
@@ -817,31 +817,31 @@ if __name__ == "__main__":
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
     # make_mafft_per_organism("../data/organism_updated/")
     # encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
-    aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
-    aln_encoded = set(
-        [i.split("_")[1] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
-    print("wypadły???", aln_encoded - aln, aln - aln_encoded)
-
-    canonical = False
-    with (open("../data/orthodb.fasta") as f):
-        with open("../data/orthodb_fix.fasta", "w") as f2:
-            for line in f.readlines():
-                if line.strip():
-                    if "canonical" in line:
-                        canonical = True
-                    f2.write(line.strip() + "\n")
-            if not canonical:
-                f2.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
-    run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
-    sequences = search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
-                                            file_out_aln_excluded="../data/orthodb_err.aln")
-    aln_to_fasta(file_fasta_all="../data/orthodb_fix.fasta",
-                 file_fasta="../data/orthodb_ok.fasta",
-                 sequences=sequences)
-    run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
-    sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln",
-                                            file_out_aln="../data/orthodb_ok2.aln",
-                                            file_out_aln_excluded="../data/orthodb_err2.aln")
+    # aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
+    # aln_encoded = set(
+    #     [i.split("_")[1] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
+    # print("wypadły???", aln_encoded - aln, aln - aln_encoded)
+    #
+    # canonical = False
+    # with (open("../data/orthodb.fasta") as f):
+    #     with open("../data/orthodb_fix.fasta", "w") as f2:
+    #         for line in f.readlines():
+    #             if line.strip():
+    #                 if "canonical" in line:
+    #                     canonical = True
+    #                 f2.write(line.strip() + "\n")
+    #         if not canonical:
+    #             f2.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
+    # run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
+    # sequences = search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
+    #                                         file_out_aln_excluded="../data/orthodb_err.aln")
+    # aln_to_fasta(file_fasta_all="../data/orthodb_fix.fasta",
+    #              file_fasta="../data/orthodb_ok.fasta",
+    #              sequences=sequences)
+    # run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
+    # sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln",
+    #                                         file_out_aln="../data/orthodb_ok2.aln",
+    #                                         file_out_aln_excluded="../data/orthodb_err2.aln")
     get_organisms(fasta_file="../data/orthodb_ok.fasta", aln_file="../data/orthodb_ok2.aln")
 
 # todo:
