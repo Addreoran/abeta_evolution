@@ -689,15 +689,32 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     sequences_excluded = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) < 5}
     with open(file_out_aln, "w") as f:
         for acc, sequence_AB in sequences_included.items():
-            if sequence_AB[0] != "-" and (sequence_AB[-1] != "-" or sequence_AB[begin3:end3] - 1] != "-"):
+            if sequence_AB[0] != "-" and (sequence_AB[-1] != "-" or sequence_AB[begin3:end3][-1] != "-"):
                 f.write(f"{acc}\t{sequence_AB}\n")
             else:
                 sequences_excluded[acc] = sequence_AB
-            with open(file_out_aln_excluded, "w") as f:
-                for
-            acc, sequence_AB in sequences_excluded.items():
+    with open(file_out_aln_excluded, "w") as f:
+        for acc, sequence_AB in sequences_excluded.items():
             f.write(f"{acc}\t{sequence_AB}\n")
     return sequences
+
+
+def get_organisms(fasta_file, aln_file):
+    dataset = {}
+    with open(fasta_file) as f:
+        for line in f.readlines():
+            if line.startswith(">"):
+                # "organism_taxid":"151549_0",
+                organism = line.split('"organism_taxid":"')[-1].split("_")[0]
+                prot_id = line.split()[0].replace(">", "")
+                dataset[prot_id] = organism
+    with open(aln_file) as f:
+        for line in f.readlines():
+            acc = line.split()[0]
+    organisms_new = {dataset[i] for i in acc}
+    organisms_old = set([i.split(".")[0] for i in os.listdir("../data/organism_updated/") if "aln" in i])
+    print(organisms_old - organisms_new)
+    print(organisms_new - organisms_old)
 
 
 if __name__ == "__main__":
@@ -825,6 +842,7 @@ if __name__ == "__main__":
     sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln",
                                             file_out_aln="../data/orthodb_ok2.aln",
                                             file_out_aln_excluded="../data/orthodb_err2.aln")
+    get_organisms(fasta_file="../data/orthodb_ok.fasta", aln_file="../data/orthodb_ok2.aln")
 
 # todo:
 # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
