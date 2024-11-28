@@ -712,7 +712,8 @@ def get_organisms(fasta_file, aln_file):
         for line in f.readlines():
             acc = line.split()[0]
     organisms_new = {dataset.get(i, "-") for i in acc if acc != "1"}
-    organisms_old = set([i.split(".")[0] for i in os.listdir("../data/organism_updated/") if "aln" in i])
+    organisms_old = set(
+        [i.split(".")[0] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
     print(organisms_old - organisms_new)
     print(organisms_new - organisms_old)
 
