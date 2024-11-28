@@ -62,7 +62,7 @@ def search_APP_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     res = re.search(pattern2, sequences[acc_human])
     begin = res.start()
     end = res.end()
-    sequences_included = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) > 5}
+    sequences_included = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) >= 5}
     sequences_excluded = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) < 5}
 
     with open(file_out_aln, "w") as f:
@@ -678,8 +678,8 @@ def search_orthodb_localisation(file_aln, file_out_aln, file_out_aln_excluded):
     res = re.search(pattern2, sequences[acc_human])
     begin = res.start()
     end = res.end()
-    sequences_included = {i: j for i, j in sequences.items() if j[begin:end][0]!="-" and j[begin:end][7]!="-" and j[begin:end][8]!="-"}
-    sequences_excluded = {i: j for i, j in sequences.items() if j[begin:end][0]=="-" or j[begin:end][7]=="-" or j[begin:end][8]=="-"}
+    sequences_included = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) >= 5}
+    sequences_excluded = {i: j for i, j in sequences.items() if len(j[begin:end].replace("-", "")) < 5}
 
     with open(file_out_aln, "w") as f:
         for acc, sequence_AB in sequences_included.items():
