@@ -593,7 +593,7 @@ def make_mafft_per_organism(folder):
 
 
 def read_e_val_per_seq(folder):
-    files = os.listdir(folder)
+    files = [i for i in os.listdir(folder) if i.endswith("txt")]
     uniprot_acc = None
     result = {}
     for file in files:
@@ -619,7 +619,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
     for aa in sequence:
         pattern += fr"{aa}[-]*"
     pattern = pattern[:-4]
-    e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encoded/")
+    e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encode/")
     with open("../data/problematic_organism.csv", "w") as o:
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
@@ -840,16 +840,16 @@ if __name__ == "__main__":
     #     https://www.orthodb.org/?query=A0A8C2Q5C9, https://orthology.phylomedb.org/, https://www.flyrnai.org/tools/paralogs/web/,
     #     http://eggnog6.embl.de/
     # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
-    todel = load_todel_proteins(fasta_sequences)
+    # todel = load_todel_proteins(fasta_sequences)
     # fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
-    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
+    # update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
 
     # isoform_db = load_isoforms("../data/isoforms.csv")
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    make_mafft_per_organism("../data/organism_updated/")
+    # make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
     aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
     aln_encoded = set(
