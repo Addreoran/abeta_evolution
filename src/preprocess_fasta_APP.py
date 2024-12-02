@@ -676,7 +676,11 @@ def encode_mafft_find_amyloid_per_organism(folder):
                             elif max_diff > rev_seq_diffrence[seq]:
                                 max_diff = rev_seq_diffrence[seq]
                     print(max_diff)
-                    no_max_diff = [i for i in rev_seq.keys() if max_diff == rev_seq_diffrence[seq]]
+                    no_max_diff = []
+                    for seq, acc in rev_seq.items():
+                        if max_diff == rev_seq_diffrence[seq]:
+                            no_max_diff.append(seq)
+                    # no_max_diff = [i for i in rev_seq.keys() if max_diff == rev_seq_diffrence[seq]]
                     print(file, no_max_diff, rev_seq_diffrence)
                     input()
 
