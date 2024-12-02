@@ -624,6 +624,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
         pattern += fr"{aa}[-]*"
     pattern = pattern[:-4]
     e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encode/")
+    final_file = open("../data/final_file.csv", "w")
     with open("../data/problematic_organism2.csv", "w") as o:
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
@@ -666,6 +667,10 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 #         rev_seq_diffrence[i] = sum(j)
                 # rev_seq_diffrence = {i: sum(j) for i, j in rev_seq_diffrence.items() if
                 #                      "canonical" not in rev_seq[i]}
+                if len(rev_seq) == 2:
+                    for seq, acc in rev_seq.items():
+                        if "canonical" not in f"f{acc}":
+                            final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                 if len(rev_seq) > 2:
                     max_diff = None
                     max_diff_seq = None
@@ -714,6 +719,8 @@ def encode_mafft_find_amyloid_per_organism(folder):
                         max_diff = no_max_diff[0]
                     for seq, acc in rev_seq.items():
                         min_e_val = [e_val_per_acc[i] for i in [j for j in acc if "canonical" not in j]]
+                        if max_diff == seq:
+                            final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                         o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == seq}\n")
                         print(file, seq, acc)
                 with open(folder + "encoded_" + file, "w") as f:
@@ -913,7 +920,7 @@ if __name__ == "__main__":
     aln_encoded = set(
         [i.split("_")[1] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
     # print("wypadły???", aln_encoded - aln, aln - aln_encoded)
-
+    # prepare_final_fasta()
 # in order not to get paralogs....
 # po score i e-val wybrać najlepsze sekwencje
 
