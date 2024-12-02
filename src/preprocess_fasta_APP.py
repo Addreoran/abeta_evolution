@@ -624,7 +624,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
         pattern += fr"{aa}[-]*"
     pattern = pattern[:-4]
     e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encode/")
-    with open("../data/problematic_organism.csv", "w") as o:
+    with open("../data/problematic_organism2.csv", "w") as o:
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
                 sequences = {}
@@ -667,10 +667,16 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 # rev_seq_diffrence = {i: sum(j) for i, j in rev_seq_diffrence.items() if
                 #                      "canonical" not in rev_seq[i]}
                 if len(rev_seq) > 2:
+                    max_diff = None
+                    for seq, acc in rev_seq.items():
+                        if max_diff is None:
+                            max_diff = rev_seq_diffrence[seq]
+                        elif max_diff < rev_seq_diffrence[seq]:
+                            max_diff = rev_seq_diffrence[seq]
 
                     for seq, acc in rev_seq.items():
                         min_e_val = [e_val_per_acc[i] for i in [j for j in acc if "canonical" not in j]]
-                        o.write(f"{file};{seq};{acc};{min_e_val};{rev_seq_diffrence[seq]}\n")
+                        o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == rev_seq_diffrence[seq]}\n")
                         print(file, seq, acc)
                     input()
                 with open(folder + "encoded_" + file, "w") as f:
