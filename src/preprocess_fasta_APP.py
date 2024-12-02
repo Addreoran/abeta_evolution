@@ -592,6 +592,23 @@ def make_mafft_per_organism(folder):
             run_mafft(folder + file, folder + file.split(".")[0] + ".aln")
 
 
+def read_e_val_per_seq(folder):
+    files = os.listdir(folder)
+    uniprot_acc = None
+    result = {}
+    for file in files:
+        with open(folder + file) as f:
+            for line in f.readlines():
+                if line.startswith(">>"):
+                    uniprot_acc = line.split("|")[1]
+                    if uniprot_acc not in result:
+                        result[uniprot_acc] = []
+                if "conditional E-value:" in line:
+                    line = line.strip().split("conditional E-value: ")
+                    result[uniprot_acc].append(float(line[-1]))
+    return {i: min(j) for i, j in result.items()}
+
+
 def encode_mafft_find_amyloid_per_organism(folder):
     # {folder}index.csv
     set_id = 0
@@ -602,6 +619,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
     for aa in sequence:
         pattern += fr"{aa}[-]*"
     pattern = pattern[:-4]
+    e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encoded/")
     with open("../data/problematic_organism.csv", "w") as o:
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
@@ -624,14 +642,20 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 end = res.end()
                 sequences = {i: j[begin:end] for i, j in sequences.items()}
                 rev_seq = {}
+                rev_seq_diffrence = {}
+
                 for acc, seq in sequences.items():
                     if seq not in rev_seq:
                         rev_seq[seq] = set()
                     rev_seq[seq].add(acc)
+                    rev_seq_diffrence[seq] = {[].append(1) for i in range(len(sequence)) if seq[i] != sequence[i]}
+                rev_seq_diffrence = {i: sum(j) for i, j in rev_seq_diffrence.items() if
+                                     "canonical" not in rev_seq[i]}
                 if len(rev_seq) > 2:
 
                     for seq, acc in rev_seq.items():
-                        o.write(f"{file};{seq};{acc}\n")
+                        min_e_val = min([e_val_per_acc[i] for i in acc])
+                        o.write(f"{file};{seq};{acc};{min_e_val};{rev_seq_diffrence[seq]}\n")
                         print(file, seq, acc)
                     input()
                 with open(folder + "encoded_" + file, "w") as f:
@@ -825,34 +849,35 @@ if __name__ == "__main__":
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    # make_mafft_per_organism("../data/organism_updated/")
-    # encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
-    # aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
-    # aln_encoded = set(
-    #     [i.split("_")[1] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
+    make_mafft_per_organism("../data/organism_updated/")
+    encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
+    aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
+    aln_encoded = set(
+        [i.split("_")[1] for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" in i])
     # print("wypadły???", aln_encoded - aln, aln - aln_encoded)
-    #
-    # canonical = False
-    # with (open("../data/orthodb.fasta") as f):
-    #     with open("../data/orthodb_fix.fasta", "w") as f2:
-    #         for line in f.readlines():
-    #             if line.strip():
-    #                 if "canonical" in line:
-    #                     canonical = True
-    #                 f2.write(line.strip() + "\n")
-    #         if not canonical:
-    #             f2.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
-    # run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
-    # sequences = search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
-    #                                         file_out_aln_excluded="../data/orthodb_err.aln")
-    # aln_to_fasta(file_fasta_all="../data/orthodb_fix.fasta",
-    #              file_fasta="../data/orthodb_ok.fasta",
-    #              sequences=sequences)
-    # run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
-    # sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln",
-    #                                         file_out_aln="../data/orthodb_ok2.aln",
-    #                                         file_out_aln_excluded="../data/orthodb_err2.aln")
-    get_organisms(fasta_file="../data/orthodb_ok.fasta", aln_file="../data/orthodb_ok2.aln")
 
-# todo:
-# https://www.ebi.ac.uk/interpro/entry/InterPro/IPR013803/ może dodać ten zestaw białek do początku
+# in order not to get paralogs....
+# po score i e-val wybrać najlepsze sekwencje
+
+
+# canonical = False
+# with (open("../data/orthodb.fasta") as f):
+#     with open("../data/orthodb_fix.fasta", "w") as f2:
+#         for line in f.readlines():
+#             if line.strip():
+#                 if "canonical" in line:
+#                     canonical = True
+#                 f2.write(line.strip() + "\n")
+#         if not canonical:
+#             f2.write(">1|canonical_seq\nDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA\n")
+# run_mafft(file="../data/orthodb_fix.fasta", out="../data/orthodb.aln")
+# sequences = search_orthodb_localisation(file_aln="../data/orthodb.aln", file_out_aln="../data/orthodb_ok.aln",
+#                                         file_out_aln_excluded="../data/orthodb_err.aln")
+# aln_to_fasta(file_fasta_all="../data/orthodb_fix.fasta",
+#              file_fasta="../data/orthodb_ok.fasta",
+#              sequences=sequences)
+# run_mafft(file="../data/orthodb_ok.fasta", out="../data/orthodb_ok_short.aln")
+# sequences = search_orthodb_localisation(file_aln="../data/orthodb_ok_short.aln",
+#                                         file_out_aln="../data/orthodb_ok2.aln",
+#                                         file_out_aln_excluded="../data/orthodb_err2.aln")
+# get_organisms(fasta_file="../data/orthodb_ok.fasta", aln_file="../data/orthodb_ok2.aln")
