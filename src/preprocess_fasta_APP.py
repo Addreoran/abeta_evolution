@@ -604,7 +604,7 @@ def read_e_val_per_seq(folder):
                     if uniprot_acc not in result:
                         result[uniprot_acc] = set()
                 if "conditional E-value:" in line:
-                    e_val = line.strip().split("conditional E-value: ")
+                    e_val = line.strip().split("conditional E-value: ")[-1]
                     score = line.strip().split("score: ")[-1].split("bits")[0]
 
                     result[uniprot_acc].add(tuple([float(e_val), score]))
