@@ -668,18 +668,46 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 #                      "canonical" not in rev_seq[i]}
                 if len(rev_seq) > 2:
                     max_diff = None
+                    max_diff_seq = None
                     for seq, acc in rev_seq.items():
                         if "canonical" not in f"{acc}":
                             if max_diff is None:
                                 max_diff = rev_seq_diffrence[seq]
                             elif max_diff > rev_seq_diffrence[seq]:
                                 max_diff = rev_seq_diffrence[seq]
-
+                    no_max_diff = [i for i in rev_seq.keys() if max_diff == rev_seq_diffrence[seq]]
+                    selected_diff = None
+                    if len(no_max_diff) > 0:
+                        for seq in no_max_diff:
+                            if selected_diff is None:
+                                selected_diff = seq
+                            elif len(rev_seq[seq]) > selected_diff:
+                                selected_diff = seq
+                            elif len(rev_seq[seq]) == selected_diff:
+                                a = 0
+                                b = 0
+                                if seq[5] == "H":
+                                    a += 1
+                                if seq[12] == "H":
+                                    a += 1
+                                if seq[13] == "H":
+                                    a += 1
+                                if selected_diff[5] == "H":
+                                    b += 1
+                                if selected_diff[12] == "H":
+                                    b += 1
+                                if selected_diff[13] == "H":
+                                    b += 1
+                                if a > b:
+                                    selected_diff = seq
+                                    
+                        max_diff = seq
+                    else:
+                        max_diff = no_max_diff[0]
                     for seq, acc in rev_seq.items():
                         min_e_val = [e_val_per_acc[i] for i in [j for j in acc if "canonical" not in j]]
-                        o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == rev_seq_diffrence[seq]}\n")
+                        o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == seq}\n")
                         print(file, seq, acc)
-                    input()
                 with open(folder + "encoded_" + file, "w") as f:
                     for seq, acc in rev_seq.items():
                         f.write(f"{set_id}\t{seq}\n")
