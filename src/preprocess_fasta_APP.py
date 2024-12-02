@@ -602,12 +602,14 @@ def read_e_val_per_seq(folder):
                 if line.startswith(">>"):
                     uniprot_acc = line.split("|")[1]
                     if uniprot_acc not in result:
-                        result[uniprot_acc] = []
+                        result[uniprot_acc] = set()
                 if "conditional E-value:" in line:
-                    line = line.strip().split("conditional E-value: ")
-                    result[uniprot_acc].append(float(line[-1]))
+                    e_val = line.strip().split("conditional E-value: ")
+                    score = line.strip().split("score: ")[-1].split("bits")[0]
+                    result[uniprot_acc].add(tuple([float(line[-1]), score]))
+
     result = {i: j for i, j in result.items() if len(j) > 0}
-    return {i: min(j) for i, j in result.items()}
+    return result
 
 
 def encode_mafft_find_amyloid_per_organism(folder):
@@ -655,7 +657,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 if len(rev_seq) > 2:
 
                     for seq, acc in rev_seq.items():
-                        min_e_val = min([e_val_per_acc[i] for i in acc])
+                        min_e_val = [e_val_per_acc[i] for i in acc]
                         o.write(f"{file};{seq};{acc};{min_e_val};{rev_seq_diffrence[seq]}\n")
                         print(file, seq, acc)
                     input()
