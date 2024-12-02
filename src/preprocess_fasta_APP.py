@@ -607,6 +607,7 @@ def read_e_val_per_seq(folder):
                     line = line.strip().split("conditional E-value: ")
                     result[uniprot_acc].append(float(line[-1]))
             print(file, {i: j for i, j in result.items() if len(j) == 0})
+            input()
     return {i: min(j) for i, j in result.items()}
 
 
