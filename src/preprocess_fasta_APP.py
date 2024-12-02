@@ -669,10 +669,11 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 if len(rev_seq) > 2:
                     max_diff = None
                     for seq, acc in rev_seq.items():
-                        if max_diff is None:
-                            max_diff = rev_seq_diffrence[seq]
-                        elif max_diff > rev_seq_diffrence[seq]:
-                            max_diff = rev_seq_diffrence[seq]
+                        if "canonical" not in acc:
+                            if max_diff is None:
+                                max_diff = rev_seq_diffrence[seq]
+                            elif max_diff > rev_seq_diffrence[seq]:
+                                max_diff = rev_seq_diffrence[seq]
 
                     for seq, acc in rev_seq.items():
                         min_e_val = [e_val_per_acc[i] for i in [j for j in acc if "canonical" not in j]]
