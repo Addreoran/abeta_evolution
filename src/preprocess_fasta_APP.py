@@ -681,9 +681,9 @@ def encode_mafft_find_amyloid_per_organism(folder):
                         for seq in no_max_diff:
                             if selected_diff is None:
                                 selected_diff = seq
-                            elif len(rev_seq[seq]) > selected_diff:
+                            elif len(rev_seq[seq]) > len(selected_diff):
                                 selected_diff = seq
-                            elif len(rev_seq[seq]) == selected_diff:
+                            elif len(rev_seq[seq]) == len(selected_diff):
                                 a = 0
                                 b = 0
                                 if seq[5] == "H":
@@ -700,7 +700,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                                     b += 1
                                 if a > b:
                                     selected_diff = seq
-                                    
+
                         max_diff = seq
                     else:
                         max_diff = no_max_diff[0]
