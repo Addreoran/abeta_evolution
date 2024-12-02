@@ -668,7 +668,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 if len(rev_seq) > 2:
 
                     for seq, acc in rev_seq.items():
-                        min_e_val = [e_val_per_acc[i] for i in acc]
+                        min_e_val = [e_val_per_acc[i] for i in [j for j in acc if "canonical" not in j]]
                         o.write(f"{file};{seq};{acc};{min_e_val};{rev_seq_diffrence[seq]}\n")
                         print(file, seq, acc)
                     input()
