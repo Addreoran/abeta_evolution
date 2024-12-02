@@ -654,6 +654,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                     rev_seq[seq].add(acc)
                     rev_seq_diffrence[seq] = 0
                     for i in range(len(sequence)):
+                        print(seq)
                         if seq[i] != sequence[i] and "canonical" not in rev_seq[i]:
                             rev_seq_diffrence[seq] += 1
                     # rev_seq_diffrence[seq] = {[0].append(1) for i in range(len(sequence)) if seq[i] != sequence[i]}
