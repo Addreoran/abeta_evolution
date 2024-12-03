@@ -662,7 +662,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                     for seq, acc in rev_seq.items():
                         if "canonical" not in f"f{acc}":
                             final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
-                if len(rev_seq) > 2:
+                elif len(rev_seq) > 2:
                     max_diff = None
                     max_diff_seq = None
                     for seq, acc in rev_seq.items():
@@ -713,6 +713,9 @@ def encode_mafft_find_amyloid_per_organism(folder):
                             final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                         o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == seq}\n")
                         print(file, seq, acc)
+                else:
+                    final_file.write(f"{file.split('.')[0]};\n")
+
                 with open(folder + "encoded_" + file, "w") as f:
                     for seq, acc in rev_seq.items():
                         f.write(f"{set_id}\t{seq}\n")
@@ -886,7 +889,7 @@ if __name__ == "__main__":
     # todo: brakuje w plikach 3886 i sekwencji A0AAN9QLS4
     # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
     #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
-    # create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
+    create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
     # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
     # usunąć ophany, które nie są abetami, tyko innymi białkami
 
