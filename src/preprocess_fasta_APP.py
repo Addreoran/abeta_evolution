@@ -527,20 +527,17 @@ def del_other_proteins(fasta_seq, todel):
                 if "gn=" and "amyloid" not in header.lower():
                     print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
                     print(no_proteins, no_id, "gene", header)
-
                     to_rem = input()
-
                     if to_rem == "T":
                         f.write(acc + "\n")
                         todel.add(acc)
-
                 elif "amyloid" not in header.lower():
                     print(os.system(f"cat ../data/after_jackhmmer_total_sequences_AB.aln | grep -B 100 {acc}"))
-
                     print(no_proteins, no_id, "not amyoid name", header)
                     if to_rem == "T":
                         f.write(acc + "\n")
                         todel.add(acc)
+
     for i in todel:
         print(i in fasta_seq, i)
         if i in fasta_seq:
@@ -624,7 +621,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
         pattern += fr"{aa}[-]*"
     pattern = pattern[:-4]
     e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encode/")
-    final_file = open("../data/final_file.csv", "w")
+    final_file = open("../data/final_results/final_file.csv", "w")
     with open("../data/problematic_organism2.csv", "w") as o:
         no_duble = 0
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
@@ -662,7 +659,13 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 if len(rev_seq) == 2:
                     for seq, acc in rev_seq.items():
                         if "canonical" not in f"f{acc}":
-                            final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
+                            if len(seq) != len(sequence):
+                                print(f"Paste proper sequence of {seq} ({len(seq)}) in len({len(sequence)}):")
+                                new_seq = input()
+                                final_file.write(f"{file.split('.')[0]};{new_seq.strip()};{acc}\n")
+
+                            else:
+                                final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                 elif len(rev_seq) > 2:
                     max_diff = None
                     no_duble += 1
@@ -712,7 +715,13 @@ def encode_mafft_find_amyloid_per_organism(folder):
                     for seq, acc in rev_seq.items():
                         min_e_val = [e_val_per_acc[i] for i in [j for j in acc if "canonical" not in j]]
                         if max_diff == seq:
-                            final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
+                            if len(seq) != len(sequence):
+                                print(f"Paste proper sequence of {seq} ({len(seq)}) in len({len(sequence)}):")
+                                new_seq = input()
+                                final_file.write(f"{file.split('.')[0]};{new_seq.strip()};{acc}\n")
+
+                            else:
+                                final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                         o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == seq}\n")
                         print(file, seq, acc)
                 elif len(rev_seq) == 1:
