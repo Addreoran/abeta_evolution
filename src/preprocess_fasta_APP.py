@@ -631,7 +631,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                 sequences = {}
                 for line in f.readlines():
                     if line.strip() and "CLUSTAL" not in line and "*" not in line and ":" not in line:
-                        print(line, file)
+                        print("strange line:", line, file)
                         acc, sequence_acc = line.strip().split()
                         acc = acc.split("|")[1]
                         if acc not in sequences:
