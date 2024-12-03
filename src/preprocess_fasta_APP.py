@@ -883,31 +883,31 @@ if __name__ == "__main__":
     # 6a) podzielić wg gatunków plik z wybranymi sekwencjami jako input:
     # file_out_aln="../data/after_jackhmmer_total_sequences_AB.aln",
     # file_fasta="../data/after_jackhmmer_total_sequences.fasta"
-    # ox_sets, fasta_sequences = divide_by_organizms(file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
-    #                                                fasta_file="../data/after_jackhmmer_total_sequences.fasta",
-    #                                                out_folder="../data/organism")
+    ox_sets, fasta_sequences = divide_by_organizms(file_aln="../data/after_jackhmmer_total_sequences_AB.aln",
+                                                   fasta_file="../data/after_jackhmmer_total_sequences.fasta",
+                                                   out_folder="../data/organism")
     # todo: brakuje w plikach 3886 i sekwencji A0AAN9QLS4
     # 6c) wybrać pliki w których więcej organizmów niż 1 i zrobić tabelę:
     #           tax_id; czy gatunek lub wyżej; liczba białek; ile białek to amyloidy [1]; ile białek z APP [2]; [1]&[2];
-    # create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
+    create_summary_paralogs(ox_sets, fasta_sequences, "../data/paralogs.csv")
     # 6b) Wybrać pliki z 1 białkiem, które mają inną nazwę niż Amyloid-beta lub inny gen niż APP
     # usunąć ophany, które nie są abetami, tyko innymi białkami
 
-    # ox_sets, fasta_sequences = select_orphans(ox_sets, fasta_sequences)
+    ox_sets, fasta_sequences = select_orphans(ox_sets, fasta_sequences)
     # 6d) poszukać czy są paralogami, -> https://inparanoidb.sbc.su.se/about/, https://omabrowser.org/oma/uses/#search_manual_token,
     #     https://www.orthodb.org/?query=A0A8C2Q5C9, https://orthology.phylomedb.org/, https://www.flyrnai.org/tools/paralogs/web/,
     #     http://eggnog6.embl.de/
     # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
-    # todel = load_todel_proteins(fasta_sequences)
-    # fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
-    # update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
+    todel = load_todel_proteins(fasta_sequences)
+    fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
+    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
 
     # isoform_db = load_isoforms("../data/isoforms.csv")
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    # make_mafft_per_organism("../data/organism_updated/")
+    make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
     aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
     aln_encoded = set(
