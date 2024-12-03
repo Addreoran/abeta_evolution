@@ -626,6 +626,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
     e_val_per_acc = read_e_val_per_seq("../data/jackhmmer_encode/")
     final_file = open("../data/final_file.csv", "w")
     with open("../data/problematic_organism2.csv", "w") as o:
+        no_duble = 0
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
                 sequences = {}
@@ -664,6 +665,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                             final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                 elif len(rev_seq) > 2:
                     max_diff = None
+                    no_duble += 1
                     max_diff_seq = None
                     for seq, acc in rev_seq.items():
                         if "canonical" not in f"{acc}":
@@ -724,6 +726,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
     with open(folder + "index.csv", "w") as f:
         for id_acc, accs in index_accs.items():
             f.write(f"{id_acc}\t{','.join(list(accs))}\n")
+    print(no_duble)
     pass
 
 
