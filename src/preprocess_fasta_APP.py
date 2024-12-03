@@ -642,7 +642,6 @@ def encode_mafft_find_amyloid_per_organism(folder):
                             acc_human = acc
                 if not sequences.keys():
                     continue
-                # print(file, sequences.keys())
                 res = re.search(pattern, sequences[acc_human])
                 begin = res.start()
                 end = res.end()
@@ -659,14 +658,6 @@ def encode_mafft_find_amyloid_per_organism(folder):
                         print(seq)
                         if seq[i] != sequence[i] and "canonical" not in rev_seq[seq]:
                             rev_seq_diffrence[seq] += 1
-                    # rev_seq_diffrence[seq] = {[0].append(1) for i in range(len(sequence)) if seq[i] != sequence[i]}
-                # print(rev_seq_diffrence)
-                # for i, j in rev_seq_diffrence.items():
-                #     if "canonical" not in rev_seq[i]:
-                #         print(i, j)
-                #         rev_seq_diffrence[i] = sum(j)
-                # rev_seq_diffrence = {i: sum(j) for i, j in rev_seq_diffrence.items() if
-                #                      "canonical" not in rev_seq[i]}
                 if len(rev_seq) == 2:
                     for seq, acc in rev_seq.items():
                         if "canonical" not in f"f{acc}":
@@ -687,8 +678,7 @@ def encode_mafft_find_amyloid_per_organism(folder):
                             no_max_diff.append(seq)
                     # no_max_diff = [i for i in rev_seq.keys() if max_diff == rev_seq_diffrence[seq]]
                     print(file, no_max_diff, rev_seq_diffrence)
-                    input()
-
+                    # input()
                     selected_diff = None
                     if len(no_max_diff) > 0:
                         for seq in no_max_diff:
@@ -907,14 +897,14 @@ if __name__ == "__main__":
     # usunąć białka, które mają inne nazwy i inne geny (trzeba zweryfikować które geny są ok)
     # todel = load_todel_proteins(fasta_sequences)
     # fasta_sequences, todel = del_other_proteins(fasta_sequences, todel)
-    # update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
+    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder="../data/organism_updated/")
     # pobrać izoformy
 
     # isoform_db = load_isoforms("../data/isoforms.csv")
     # isoform_db = download_isoforms(isoform_db, "../data/isoforms.csv", isoform_db)
     # https://rest.uniprot.org/uniprotkb/search?fields=accession%2Ccc_alternative_products&query=accession=P05067&format=tsv
     # zrobić alignmenty dla sekwencji i wybrać ręcznie? najdłuższe?
-    # make_mafft_per_organism("../data/organism_updated/")
+    make_mafft_per_organism("../data/organism_updated/")
     encode_mafft_find_amyloid_per_organism("../data/organism_updated/")
     aln = set([i for i in os.listdir("../data/organism_updated/") if "aln" in i and "encoded" not in i])
     aln_encoded = set(
