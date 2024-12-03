@@ -713,9 +713,9 @@ def encode_mafft_find_amyloid_per_organism(folder):
                             final_file.write(f"{file.split('.')[0]};{seq};{acc}\n")
                         o.write(f"{file};{seq};{acc};{rev_seq_diffrence[seq]};{max_diff == seq}\n")
                         print(file, seq, acc)
-                else:
-                    final_file.write(f"{file.split('.')[0]};\n")
-
+                elif len(rev_seq) == 1:
+                    acc = rev_seq[sequence]
+                    final_file.write(f"{file.split('.')[0]};{sequence};{acc}\n")
                 with open(folder + "encoded_" + file, "w") as f:
                     for seq, acc in rev_seq.items():
                         f.write(f"{set_id}\t{seq}\n")
