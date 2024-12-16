@@ -19,27 +19,27 @@ def save_as_fasta(file, result):
             f.write(f"{sequence.replace("-", "")}\n")
 
 #
-# def run_mafft(file, fasta_file):
-#     os.system(f'"/usr/bin/mafft"  --anysymbol --auto --clustalout --reorder "{fasta_file}" > "{file}"')
+def run_mafft(file, fasta_file):
+    os.system(f'"/usr/bin/mafft"  --anysymbol --auto --clustalout --reorder "{fasta_file}" > "{file}"')
 #
 #
-# def parse_mafft(file, file_out):
-#     sequences = {}
-#     with open(file) as f:
-#         # 1 otworzyć i spisać sekwencje
-#         for line in f.readlines():
-#             if line.strip() and "CLUSTAL" not in line:
-#                 acc, sequence_acc = line.strip().split()
-#                 if acc not in sequences:
-#                     sequences[acc] = sequence_acc
-#                 else:
-#                     sequences[acc] += sequence_acc
-#                 if acc_human in acc:
-#                     acc_human = acc
-#     with open(file_out, "w") as f:
-#         for acc, seq in sequences.items():
-#             f.write(f"{acc};")
-#             f.write(f"{seq}\n")
+def parse_mafft(file, file_out):
+    sequences = {}
+    with open(file) as f:
+        # 1 otworzyć i spisać sekwencje
+        for line in f.readlines():
+            if line.strip() and "CLUSTAL" not in line:
+                acc, sequence_acc = line.strip().split()
+                if acc not in sequences:
+                    sequences[acc] = sequence_acc
+                else:
+                    sequences[acc] += sequence_acc
+                if acc_human in acc:
+                    acc_human = acc
+    with open(file_out, "w") as f:
+        for acc, seq in sequences.items():
+            f.write(f"{acc};")
+            f.write(f"{seq}\n")
 
 
 files = ["../data/final_file.csv",
@@ -63,5 +63,5 @@ files_out = ["../data/final_file.fasta",
 for i in range(len(files)):
     res = read_file(files[i])
     save_as_fasta(files_out[i], res)
-    # run_mafft(files_out[i], files_out[i].rsplit(".", 1)[0] + ".aln")
-    # parse_mafft(files_out[i].rsplit(".", 1)[0] + ".aln", files_out[i].rsplit(".", 1)[0] + "_aligned.csv")
+    run_mafft(files_out[i].rsplit(".", 1)[0] + ".aln", files_out[i])
+    parse_mafft(files_out[i].rsplit(".", 1)[0] + ".aln", files_out[i].rsplit(".", 1)[0] + "_aligned.csv")
