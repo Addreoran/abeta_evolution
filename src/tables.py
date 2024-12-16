@@ -77,6 +77,6 @@ def save_table(data, file):
 
 groups = [7777, 7898, 118072, 40674, 8782, 8509, 1294634, 8459, 8292]
 positions = {"H0": 5, "H2": 12, "H3": 13}
-data = read_file("../data/final_results/final_file.csv")
+data = read_file("../data/final_file.csv")
 res = prep_data(data, positions, groups)
 save_table(res, "../data/final_results/prec_table.csv")

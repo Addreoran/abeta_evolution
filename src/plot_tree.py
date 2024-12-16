@@ -4,6 +4,7 @@ from ete3.treeview import faces
 
 from protein import Protein
 
+
 def get_redundancy(proteins):
     new_proteins = []
     for protein in proteins:
@@ -27,6 +28,18 @@ def read_datas(file):
     proteins = []
     for i in file.readlines():
         proteins.append(Protein(uniprot_id=i.split(";")[-1], organism_id=i.split(";")[0], seq=i.split(";")[1]))
+    return proteins
+
+
+def read_datas_problematic(file):
+    file = open(file, "r")
+    proteins = []
+    for i in file.readlines():
+        if "canonical" not in i.split(";")[2]:
+            print(i.split(";")[2])
+            # input()
+            proteins.append(
+                Protein(uniprot_id=i.split(";")[2], organism_id=i.split(";")[0].split('.')[0], seq=i.split(";")[1]))
     return proteins
 
 
@@ -83,7 +96,8 @@ def run(positions, type="general"):
     ncbi = NCBITaxa()
     # ncbi.update_taxonomy_database()
     # positions = {"H": 5}
-    proteins = read_datas("../data/final_results/final_file.csv")
+    proteins = read_datas("../data/final_file.csv")
+    # proteins = read_datas_problematic("../data/problematic_organism2.csv")
     # check_proteins("./dane_without_gene_redundancy.csv")
 
     # print(len(proteins))
@@ -92,7 +106,12 @@ def run(positions, type="general"):
     # print(len(proteins))
     # proteins = [i for i in proteins if 40674 in ncbi.get_lineage(i.get_organism(ncbi=ncbi))]
     organisms = [i.get_organism(ncbi=ncbi, typ="diff") for i in proteins]
-    print("select organisms", organisms)
+    # for protein in proteins:
+    # print("szukam żab", protein.line, protein.organism_id, protein.get_organism(ncbi=ncbi, typ="diff"))
+    # żaby: 8355
+    # chondro: 7868
+    # ssaki: 9305, 43179 - ma paralogi, ale z R i to stąd H13 jest mniejsze, 9606, 9685, 1868482
+    # print("select organisms", organisms)
     kingdoms = get_class(organisms, ncbi)
     print("select organisms", kingdoms)
     # organisms = set([i.get_organism(ncbi=ncbi, typ="general", selected=kingdoms) for i in proteins])
@@ -105,6 +124,7 @@ def run(positions, type="general"):
         for group in groups.keys():
             if group in lineage:
                 groups[group].append(i)
+                print(i, group)
 
     organism_tree = ncbi.get_topology([int(i) for i in kingdoms])
 

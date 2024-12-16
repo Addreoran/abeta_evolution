@@ -46,7 +46,7 @@ def draw_logo(save_file, file):
     print(jpeg)
 
 
-file = ["../data/final_results/final_file.csv",
+file = ["../data/final_file.csv",
         "../data/final_results/divided_groups_without_gene_redundancy_fish_Q.csv",
         f"../data/final_results/divided_groups_without_gene_redundancy_Chondrichtlhyes.csv",
         "../data/final_results/divided_groups_without_gene_redundancy_Birds.csv",

@@ -54,7 +54,7 @@ def save_group(proteins, file):
 
 
 def run():
-    proteins = read_file("../data/final_results/final_file.csv")
+    proteins = read_file("../data/final_file.csv")
     groups = get_groups()
     proteins2 = get_fish_with_Q(proteins, 5, "Q", taxId=[7898])
     save_group(proteins2, f"../data/final_results/divided_groups_without_gene_redundancy_fish_Q.csv")

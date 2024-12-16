@@ -70,7 +70,7 @@ def make_plot(data, file, width=0.35, ylabel="", xlabel=""):
 
 def run():
     aa_place = [5, 12, 13]
-    data1 = load_data("../data/final_results/final_file.csv")
+    data1 = load_data("../data/final_file.csv")
     data = prepare_data(data1, aa_place)
     make_csv(data, "../data/final_results/positions_mutations.csv", data1)
 
