@@ -16,7 +16,7 @@ def save_as_fasta(file, result):
     with open(file, "w") as f:
         for prot_id, sequence in result.items():
             f.write(f">{prot_id}\n")
-            f.write(f"{sequence.replace("-", "")}\n")
+            f.write(f"{sequence.replace('-', '')}\n")
 
 
 #
