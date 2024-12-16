@@ -47,14 +47,14 @@ def draw_logo(save_file, file):
 
 
 file = ["../data/final_file.csv",
-        "../data/final_results/divided_groups_without_gene_redundancy_fish_Q.csv",
-        f"../data/final_results/divided_groups_without_gene_redundancy_Chondrichtlhyes.csv",
-        "../data/final_results/divided_groups_without_gene_redundancy_Birds.csv",
-        f"../data/final_results/divided_groups_without_gene_redundancy_Amphibians.csv",
-        f"../data/final_results/divided_groups_without_gene_redundancy_reptiles.csv",
-        "../data/final_results/divided_groups_without_gene_redundancy_fish.csv",
-        "../data/final_results/divided_groups_without_gene_redundancy_mammals.csv",
-        "../data/final_results/divided_groups_without_gene_redundancy_Actinopterygii.csv"]
+        "../data/final_results/divided_groups_without_gene_redundancy_fish_Q_aligned.csv",
+        f"../data/final_results/divided_groups_without_gene_redundancy_Chondrichtlhyes_aligned.csv",
+        "../data/final_results/divided_groups_without_gene_redundancy_Birds_aligned.csv",
+        f"../data/final_results/divided_groups_without_gene_redundancy_Amphibians_aligned.csv",
+        f"../data/final_results/divided_groups_without_gene_redundancy_reptiles_aligned.csv",
+        "../data/final_results/divided_groups_without_gene_redundancy_fish_aligned.csv",
+        "../data/final_results/divided_groups_without_gene_redundancy_mammals_aligned.csv",
+        "../data/final_results/divided_groups_without_gene_redundancy_Actinopterygii_aligned.csv"]
 save_file = ["../data/final_results/logo.jpg",
              "../data/final_results/logo_fish_Q.jpg",
              "../data/final_results/logo_Chondrichtlhyes.jpg",
