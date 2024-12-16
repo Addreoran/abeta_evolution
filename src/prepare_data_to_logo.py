@@ -16,7 +16,7 @@ def save_as_fasta(file, result):
     with open(file, "w") as f:
         for prot_id, sequence in result.items():
             f.write(f">{prot_id}\n")
-            f.write(f"{sequence.replace('-', '')}\n")
+            f.write(f"{sequence.replace('-', '')[:28]}\n")
 
 
 #
@@ -33,7 +33,7 @@ def parse_mafft(file, file_out):
         # 1 otworzyć i spisać sekwencje
         for line in f.readlines():
             if line.strip() and "CLUSTAL" not in line:
-                if len(line.strip().split())==2:
+                if len(line.strip().split()) == 2:
                     acc, sequence_acc = line.strip().split()
                     if acc not in sequences:
                         sequences[acc] = sequence_acc
