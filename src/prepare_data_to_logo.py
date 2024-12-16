@@ -38,8 +38,6 @@ def parse_mafft(file, file_out):
                     sequences[acc] = sequence_acc
                 else:
                     sequences[acc] += sequence_acc
-                if acc_human in acc:
-                    acc_human = acc
     with open(file_out, "w") as f:
         for acc, seq in sequences.items():
             f.write(f"{acc};")
