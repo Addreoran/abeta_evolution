@@ -20,7 +20,7 @@ def draw_logo(save_file, file):
             popular_positions = []
             for uniprot, seq in sab.items():
                 for i in range(len(seq)):
-                    # print(uniprot, i, len(seq), len(positions), seq[i], seq, positions)
+                    print(uniprot, i, len(seq), len(positions), seq[i], seq, positions)
                     if seq[i] != "-":
                         positions[i] += 1
                     else:
