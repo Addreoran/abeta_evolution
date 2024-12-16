@@ -33,7 +33,7 @@ def parse_mafft(file, file_out):
         # 1 otworzyć i spisać sekwencje
         for line in f.readlines():
             if line.strip() and "CLUSTAL" not in line:
-                if len(line.strip().split())<2:
+                if len(line.strip().split())==2:
                     acc, sequence_acc = line.strip().split()
                     if acc not in sequences:
                         sequences[acc] = sequence_acc
