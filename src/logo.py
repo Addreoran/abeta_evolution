@@ -6,12 +6,12 @@ def draw_logo(save_file, file):
     with open("logo.cln", "w") as f1:
         f1.write("CLUSTAL 2.1 multiple sequence alignment\n\n")
         sab = {}
-        line_no=0
+        line_no = 0
         with open(file) as f:
             for l in f.readlines():
                 line = l.strip().split(";")
                 uniprot = line_no
-                line_no+=1
+                line_no += 1
                 seq = line[1]
                 sab[uniprot] = seq
                 print(len(seq))
@@ -20,7 +20,7 @@ def draw_logo(save_file, file):
             popular_positions = []
             for uniprot, seq in sab.items():
                 for i in range(len(seq)):
-                    print(uniprot, i, len(seq), len(positions))
+                    print(uniprot, i, len(seq), len(positions), seq[i], seq, positions)
                     if seq[i] != "-":
                         positions[i] += 1
                     else:
