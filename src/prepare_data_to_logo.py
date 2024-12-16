@@ -18,9 +18,13 @@ def save_as_fasta(file, result):
             f.write(f">{prot_id}\n")
             f.write(f"{sequence.replace("-", "")}\n")
 
+
 #
 def run_mafft(file, fasta_file):
-    os.system(f'"/usr/bin/mafft"  --anysymbol --auto --clustalout --reorder "{fasta_file}" > "{file}"')
+    command = f'"/usr/bin/mafft"  --anysymbol --auto --clustalout --reorder "{fasta_file}" > "{file}"'
+    os.system(command)
+
+
 #
 #
 def parse_mafft(file, file_out):
