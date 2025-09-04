@@ -40,14 +40,15 @@ def get_proteins_from_group(proteins, group):
 
 def get_group(proteins, taxId):
     ncbi = NCBITaxa()
+    ncbi.update_taxonomy_database()
     proteins_new = [i for i in proteins if i.get_organism(ncbi, typ="general", selected=taxId) in taxId]
     return proteins_new
 
 
 def save_group(proteins, file):
     with open(file, "w") as f:
-        for p in proteins:
-            f.write(p.line)
+        for protein in proteins:
+            f.write(protein.line)
 
 
 def read_divided_file(file):
@@ -135,7 +136,6 @@ def draw_logo(save_file, file):
 def run_logo_steps(proteins, taxes, result_folder, name):
     proteins2 = get_group(proteins, taxId=taxes)
     save_group(proteins2, os.path.join(result_folder, f"peptides_{name}.csv"))
-
     res = read_divided_file(os.path.join(result_folder, f"peptides_{name}.csv"))
     save_as_fasta(os.path.join(result_folder, f"peptides_{name}.fasta"), res)
     run_mafft(os.path.join(result_folder, f"peptides_{name}.aln"),
@@ -153,6 +153,8 @@ def run_logo_steps(proteins, taxes, result_folder, name):
 @click.option('--result_folder', default="./WebLogo/",
               help='Folder with results.')
 def divide_organisms_by_groups(final_file, TaxIds, result_folder):
+    ncbi = NCBITaxa()
+    ncbi.update_taxonomy_database()
     proteins = read_file(final_file)
     if not os.path.exists(result_folder):
         os.mkdir(result_folder)

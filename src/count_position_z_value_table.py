@@ -1,7 +1,7 @@
 import os.path
 
-from ete3 import NCBITaxa
 import click
+from ete3 import NCBITaxa
 
 
 def read_file(path):
@@ -108,6 +108,7 @@ def create_files(final_file, main_organisms, result_folder):
 
     data = read_file(final_file)
     ncbi = NCBITaxa()
+    ncbi.update_taxonomy_database()
     sequences = {}
     for main, list_o in main_organisms.items():
         organisms_species = set()

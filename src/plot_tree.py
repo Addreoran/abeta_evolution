@@ -23,6 +23,7 @@ def plot_tree(main_organisms, H_positions_file):
     H_positions = read_H_position(H_positions_file)
     main_organisms_ids = main_organisms.keys()
     ncbi = NCBITaxa()
+    ncbi.update_taxonomy_database()
     tree = ncbi.get_topology(main_organisms_ids)
     for i in tree.traverse():
         children_node = i.children

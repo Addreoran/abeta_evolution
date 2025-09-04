@@ -1,11 +1,12 @@
 import os
 import re
+import shutil
+
+import click
 import requests
 from Levenshtein import distance
-import click
-from ete3 import NCBITaxa
-import shutil
 from bs4 import BeautifulSoup
+from ete3 import NCBITaxa
 
 
 def run_mafft(file, out):
@@ -448,6 +449,7 @@ def get_genes(source_file, save_file):
 
 def get_actino_sequences(fasta_sequences_by_headers, path):
     ncbi = NCBITaxa()
+    ncbi.update_taxonomy_database()
     actino_fasta = {}
     for acc, data_fasta in fasta_sequences_by_headers.items():
         if ">sp" in data_fasta["header"] or ">tr" in data_fasta["header"]:
