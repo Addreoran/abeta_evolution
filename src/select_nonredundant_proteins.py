@@ -3,6 +3,8 @@ import re
 import requests
 from Levenshtein import distance
 import click
+from ete3 import NCBITaxa
+import shutil
 
 
 def run_mafft(file, out):
@@ -60,7 +62,6 @@ def get_organisms_from_file(file):
 
 
 def get_organism_by_refseq(refseq_id):
-    from ete3 import NCBITaxa
     ncbi = NCBITaxa()
     name2taxid = ncbi.get_name_translator([refseq_id])
     print(name2taxid)
@@ -350,6 +351,342 @@ def align_final_abeta(file_in, file_out):
             f.write(f"{acc};{seq}\n")
 
 
+def get_ensemble(id):
+    try:
+        url = f"https://rest.ensembl.org/lookup/id/{id}?content-type=application/json;expand=1"
+        res = requests.get(url)
+        result = set([i["display_name"].split("-")[0] for i in res.json()["Transcript"]])
+        if len(result) == 1:
+            return list(result)[0].lower()
+    except:
+        return
+
+
+def get_ncbi(accessions):
+    url = f" https://api.ncbi.nlm.nih.gov/datasets/v2/gene/accession/{accessions}"
+    print(url)
+    import requests
+
+    req = requests.get(url)
+    resp_json = req.json()
+    if "reports" in resp_json:
+        for i in resp_json["reports"]:
+            gene = i["gene"]
+            print(gene["symbol"])
+            print(f"https://www.ncbi.nlm.nih.gov/gene/{gene['gene_id']}")
+            print(gene["description"])
+            if "ensembl_gene_ids" in gene:
+                ens = get_ensemble(gene["ensembl_gene_ids"][0])
+                print(gene["ensembl_gene_ids"])
+                if gene["symbol"] in ["app", "appa", "appb"]:
+                    if ens == gene["symbol"]:
+                        return gene["symbol"]
+                else:
+                    if ens in ["app", "appa", "appb"]:
+                        return ens
+
+
+def get_genes(source_file, save_file):
+    with open(source_file) as f:
+        with open(save_file, "w") as f2:
+            for l in f:
+                if l.startswith(">sp") or l.startswith(">tr"):
+                    test = False
+                    print(l)
+                    protein = l.split("|")[1]
+                    url = f"https://rest.uniprot.org/uniprotkb/{protein}.xml"
+                    print(url)
+                    xml_file = requests.get(url)
+                    url_text = xml_file.text.encode("utf-8")
+                    soup = BeautifulSoup(url_text)
+                    if l.split("|")[2] in ["app", "appa", "appb"]:
+                        test = True
+                    for gene in soup.find_all('gene'):
+                        if gene.text.lower().strip() in ["appa", "appb"]:
+                            print("test", l.split("|")[2])
+                            if l.split("|")[2] not in ["app", "appa", "appb"]:
+                                new_header = l.split("|")[:2] + [gene.text.lower().strip()] + l.split("|")[2:]
+                                new_header = "|".join(new_header)
+                                l = new_header
+                                test = True
+
+                    if not test:
+                        ensembl = soup.find_all('dbreference', type="Ensembl")
+                        for ens in ensembl:
+                            properties = ens.find_all("property", type="gene ID")
+                            for prop in properties:
+                                ensembl_id = prop["value"]
+                                gene_name = get_ensemble(ensembl_id.split(".")[0])
+                                if gene_name in ["app", "appa", "appb"]:
+                                    new_header = l.split("|")[:2] + [gene_name] + l.split("|")[2:]
+                                    new_header = "|".join(new_header)
+                                    l = new_header
+
+                        for embl in soup.find_all('dbreference', type="EMBL"):
+                            embl_id = embl["id"]
+                            print(f"https://www.ebi.ac.uk/ena/browser/view/{embl_id}")
+                            gene_name = input().strip()
+                            if gene_name:
+                                new_header = l.split("|")[:2] + [gene_name] + l.split("|")[2:]
+                                new_header = "|".join(new_header)
+                                l = new_header
+                                print(new_header)
+                        for refseq in soup.find_all('dbreference', type="RefSeq"):
+                            refseq_id = refseq["id"]
+                            gene_name = input().strip()
+                            if gene_name:
+                                new_header = l.split("|")[:2] + [gene_name] + l.split("|")[2:]
+                                new_header = "|".join(new_header)
+                                l = new_header
+                elif l.startswith(">"):
+                    refseq_id = l[1:].split()[0]
+                    if "_" in l:
+                        print(l.split("_")[-1].split()[0])
+                        if l.split("_")[-1].split()[0] in ["app", "appa", "appb"]:
+                            continue
+                        else:
+                            print(f"https://www.ncbi.nlm.nih.gov/protein/{refseq_id}")
+                            gene_name = get_ncbi(refseq_id)
+                            if gene_name:
+                                new_header = [l.split()[0] + f"_{gene_name}"] + l.split()[1:]
+                                new_header = " ".join(new_header)
+                                l = new_header
+                    else:
+                        print(f"https://www.ncbi.nlm.nih.gov/protein/{refseq_id}")
+                        gene_name = get_ncbi(refseq_id)
+                        if gene_name:
+                            new_header = [l.split()[0] + f"_{gene_name}"] + l.split()[1:]
+                            new_header = " ".join(new_header)
+                            l = new_header
+                f2.write(l)
+
+
+def get_actino_sequences(fasta_sequences_by_headers, path):
+    ncbi = NCBITaxa()
+    actino_fasta = {}
+    for acc, data_fasta in fasta_sequences_by_headers.items():
+        if ">sp" in data_fasta["header"] or ">tr" in data_fasta["header"]:
+            tax = get_tax_uniprot(acc, data_fasta["header"])
+        else:
+            organism = data_fasta["header"].split("[")[-1].split("]")[0]
+            tax = get_organism_by_refseq(organism, data_fasta)
+        print(acc, tax)
+        if tax is None:
+            print(data_fasta)
+            print("tax_id:")
+            tax = input()
+        if 7898 in ncbi.get_lineage(tax):
+            actino_fasta[acc] = data_fasta
+    with open(path, "w") as f:
+        for acc, seq_data in actino_fasta.items():
+            f.write(seq_data["header"])
+            f.write(seq_data["seq"])
+
+
+def read_files_with_sequences(file):
+    res = {}
+    new_str = ""
+    name = ""
+    header = ""
+    with open(file) as f:
+        for l in f.readlines():
+            if l.startswith(">"):
+                if header:
+                    res[name] = {"header": header, "seq": new_str}
+                    if ">sp" in l or ">tr" in l:
+                        name = l.split("|")[1]
+                    else:
+                        name = l.split()[0][1:].replace("_appa", "").replace("_appb", "").replace("_app", "")
+                header = l
+                new_str = ""
+            else:
+                new_str += l
+    if name:
+        res[name] = {"header": header, "seq": new_str}
+    return res
+
+
+def tuning_cd_hit(file):
+    c_list = [0.7, 0.8, 0.9, 0.98]
+    s_list = [0.7, 0.8, 0.9]
+    aL_list = [0.7, 0.8, 0.9]
+    for c in c_list:
+        for s in s_list:
+            for aL in aL_list:
+                command = f"cd-hit -c {c} -n 5 -G 1 -i {file}  -o  tmp_c_{c}_s_{s}_aL_{aL} -s {s} -aL {aL} -p 1 -T 0 -g 1"
+                os.system(command)
+
+
+def change_gene(old_gene, new_gene, cl_data, fasta):
+    for acc in cl_data[old_gene]:
+        if ">sp" in fasta[acc]["header"] or ">tr" in fasta[acc]["header"]:
+            if f"|{new_gene}|" not in fasta[acc]["header"]:
+                fasta[acc]["header"] = fasta[acc]["header"].replace(f"{acc}|", f"{acc}|{new_gene}|")
+        else:
+            if f"_{new_gene}" not in fasta[acc]["header"]:
+                fasta[acc]["header"] = fasta[acc]["header"].replace(f"{acc}", f"{acc}_{new_gene}")
+    for acc in cl_data["app"]:
+        if ">sp" in fasta[acc]["header"] or ">tr" in fasta[acc]["header"]:
+            if f"|{new_gene}|" not in fasta[acc]["header"]:
+                fasta[acc]["header"] = fasta[acc]["header"].replace(f"{acc}|", f"{acc}|{new_gene}|")
+        else:
+            if f"_{new_gene}" not in fasta[acc]["header"]:
+                fasta[acc]["header"] = fasta[acc]["header"].replace(f"{acc}", f"{acc}_{new_gene}")
+    for acc in cl_data["lack"]:
+        if ">sp" in fasta[acc]["header"] or ">tr" in fasta[acc]["header"]:
+            if f"|{new_gene}|" not in fasta[acc]["header"]:
+                fasta[acc]["header"] = fasta[acc]["header"].replace(f"{acc}|", f"{acc}|{new_gene}|")
+        else:
+            if f"_{new_gene}" not in fasta[acc]["header"]:
+                fasta[acc]["header"] = fasta[acc]["header"].replace(f"{acc}", f"{acc}_{new_gene}")
+    return fasta
+
+
+def change_genes_names(last_file, fasta, file_proteins_appa_appb_with_genes):
+    c_list = [0.98, 0.95, 0.9, 0.8, 0.85]
+    s_list = [0.98, 0.95, 0.9, 0.8, 0.85]
+    aL_list = [0.98, 0.95, 0.9, 0.8, 0.85]
+    for c in c_list:
+        for s in s_list:
+            for aL in aL_list:
+                command = f"cd-hit -c {c} -n 5 -G 1 -i {last_file}  -o  tmp_c_{c}_s_{s}_aL_{aL} -s {s} -aL {aL} -p 1 -T 0 -g 1"
+                os.system(command)
+                result = {}
+                cluster_name = None
+                new_data = {"lack": set(), "app": set(), "appa": set(), "appb": set()}
+                # with open(f"./new_tmp/new_tmp_c_{c}_s_{s}_aL_{aL}.clstr") as f:
+                with open(f"./tmp_c_{c}_s_{s}_aL_{aL}.clstr") as f:
+                    for l in f:
+                        if l.startswith(">"):
+                            if cluster_name:
+                                result[cluster_name] = new_data
+                            cluster_name = l.strip()
+                            new_data = {"lack": set(), "app": set(), "appa": set(), "appb": set()}
+                        else:
+                            gene = "lack"
+                            line = l.split(" ")
+                            acc_data = line[1]
+                            # print(f"tmp_c_{c}_s_{s}_aL_{aL}.clstr", cluster_name, acc_data)
+
+                            if "tr" in acc_data or "sp" in acc_data:
+                                acc = acc_data.split("|")[1]
+                                gene = acc_data.split("|")[2]
+                                # print(acc_data, gene)
+
+                            else:
+                                gene = "lack"
+                                if "app" in acc_data or "appa" in acc_data or "appb" in acc_data:
+                                    acc = acc_data[1:].rsplit("_", 1)[0].replace("_appa", "").replace("_appb",
+                                                                                                      "").replace(
+                                        "_app", "").replace("?", "")
+                                    gene = acc_data[1:].rsplit("_")[-1][:-3]
+                                    # print(acc_data, gene)
+
+                                else:
+                                    acc = acc_data[1:-3]
+                            if gene not in ["app", "appa", "appb"]:
+                                gene = "lack"
+                            new_data[gene].add(acc)
+                # print(f"tmp_c_{c}_s_{s}_aL_{aL}.clstr", result)
+                for cl_name, cl_data in result.items():
+                    if cl_data["appa"] and cl_data["appb"]:
+                        if len(cl_data["appb"]) < len(cl_data["appa"]):
+                            print(f"tmp_c_{c}_s_{s}_aL_{aL}.clstr", "mistake!", cl_name, "b:", cl_data["appb"], "a:",
+                                  cl_data["appa"])
+                        else:
+                            print(f"tmp_c_{c}_s_{s}_aL_{aL}.clstr", "mistake!", cl_name, "a:", cl_data["appa"], "b:",
+                                  cl_data["appb"])
+                    if len(cl_data["appa"]) + len(cl_data["appb"]) + len(cl_data["lack"]) + len(cl_data["app"]) > 0:
+                        if len(cl_data["appa"]) / (
+                                len(cl_data["appa"]) + len(cl_data["appb"]) + len(cl_data["lack"]) + len(
+                            cl_data["app"])) > 0.5 and len(cl_data["appa"]) > len(cl_data["appb"]):
+                            fasta = change_gene(old_gene="appb", new_gene="appa", cl_data=cl_data, fasta=fasta)
+                        elif len(cl_data["appb"]) / (
+                                len(cl_data["appa"]) + len(cl_data["appb"]) + len(cl_data["lack"]) + len(
+                            cl_data["app"])) > 0.5 and len(cl_data["appb"]) > len(cl_data["appa"]):
+                            fasta = change_gene(old_gene="appa", new_gene="appb", cl_data=cl_data, fasta=fasta)
+                all = 0
+                with_gene = 0
+                with open(file_proteins_appa_appb_with_genes, "w") as f2:
+                    for acc, fasta_data in fasta.items():
+                        all += 1
+                        if "appa" in fasta_data["header"] or "appb" in fasta_data["header"]:
+                            with_gene += 1
+                        else:
+                            f2.write(fasta_data["header"])
+                            f2.write(fasta_data["seq"])
+    return fasta
+
+
+def divide_appa_appb_by_files(fasta, appa_folder, appb_folder):
+    info_tax = {}
+    for acc, data_fasta in fasta.items():
+        if ">sp" in data_fasta["header"] or ">tr" in data_fasta["header"]:
+            tax = get_tax_uniprot(acc)
+            gene = data_fasta["header"].split("|")[2]
+        else:
+            organism = data_fasta["header"].split("[")[-1].split("]")[0]
+            tax = get_organism_by_refseq(organism)
+            gene = "ap" + data_fasta["header"].split(" ")[0].split("_ap", 1)[-1]
+            if "appa" in gene:
+                gene = "appa"
+            if "appb" in gene:
+                gene = "appb"
+        if tax not in info_tax:
+            info_tax[tax] = {"appa": set(), "appb": set(), "app": set(), "other": set()}
+        print(gene)
+        if gene in ["appa", "appb", "app"]:
+            info_tax[tax][gene].add(acc)
+        else:
+            info_tax[tax]["other"].add(acc)
+        gene = None
+    with open("summary_actino.csv", "w") as f:
+        for tax, info in info_tax.items():
+            f.write(
+                f"{tax};{','.join(list(info['appa']))};{','.join(list(info['appb']))};{','.join(list(info['app']))};{','.join(list(info['other']))}\n")
+    # tax;appa;appb;app;other
+    for tax, info in info_tax.items():
+        open_type = "w"
+        for prot in info['appa']:
+            if not os.path.exists(os.path.join(appa_folder, f"{tax}.fasta")):
+                with open(os.path.join(appa_folder, f"{tax}.fasta"), "w") as f2:
+                    f2.write(">1|canonical_seq\nMLPGLALLLLAAWTARALEVPTDGNAGLLAEPQIAMFCGRLNMHMNVQNGKWDSDPSGTK\n"
+                             "TCIDTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGRKQCKTHPHFVIPYRCLVG\n"
+                             "EFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKSTNLHDYGMLLPCGIDKFR\n"
+                             "GVEFVCCPLAEESDNVDSADAEEDDSDVWWGGADTDYADGSEDKVVEVAEEEEVAEVEEE\n"
+                             "EADDDEDDEDGDEVEEEAEEPYEEATERTTSIATTTTTTTESVEEVVREVCSEQAETGPC\n"
+                             "RAMISRWYFDVTEGKCAPFFYGGCGGNRNNFDTEEYCMAVCGSAMSQSLLKTTQEPLARD\n"
+                             "PVKLPTTAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA\n"
+                             "KNLPKADKKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLALENYITAL\n"
+                             "QAVPPRPRHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDPKKAAQIRSQVMTHLRVIYER\n"
+                             "MNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRISYGNDALMPSLTET\n"
+                             "KTTVELLPVNGEFSLDDLQPWHSFGADSVPANTENEVEPVDARPAADRGLTTRPGSGLTN\n"
+                             "IKTEEISEVKMDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVIVITL\n"
+                             "VMLKKKQYTSIHHGVVEVDAAVTPEERHLSKMQQNGYENPTYKFFEQMQN\n")
+            with open(os.path.join(appa_folder, f"{tax}.fasta"), "a") as f:
+                f.write(fasta[prot]["header"])
+                f.write(fasta[prot]["seq"])
+        for prot in info['appb']:
+            if not os.path.exists(os.path.join(appb_folder, f"{tax}.fasta")):
+                with open(os.path.join(appb_folder, f"{tax}.fasta"), "w") as f2:
+                    f2.write(">1|canonical_seq\nMLPGLALLLLAAWTARALEVPTDGNAGLLAEPQIAMFCGRLNMHMNVQNGKWDSDPSGTK\n"
+                             "TCIDTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGRKQCKTHPHFVIPYRCLVG\n"
+                             "EFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKSTNLHDYGMLLPCGIDKFR\n"
+                             "GVEFVCCPLAEESDNVDSADAEEDDSDVWWGGADTDYADGSEDKVVEVAEEEEVAEVEEE\n"
+                             "EADDDEDDEDGDEVEEEAEEPYEEATERTTSIATTTTTTTESVEEVVREVCSEQAETGPC\n"
+                             "RAMISRWYFDVTEGKCAPFFYGGCGGNRNNFDTEEYCMAVCGSAMSQSLLKTTQEPLARD\n"
+                             "PVKLPTTAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA\n"
+                             "KNLPKADKKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLALENYITAL\n"
+                             "QAVPPRPRHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDPKKAAQIRSQVMTHLRVIYER\n"
+                             "MNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRISYGNDALMPSLTET\n"
+                             "KTTVELLPVNGEFSLDDLQPWHSFGADSVPANTENEVEPVDARPAADRGLTTRPGSGLTN\n"
+                             "IKTEEISEVKMDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVIVITL\n"
+                             "VMLKKKQYTSIHHGVVEVDAAVTPEERHLSKMQQNGYENPTYKFFEQMQN\n")
+            with open(os.path.join(appb_folder, f"{tax}.fasta"), "a") as f:
+                f.write(fasta[prot]["header"])
+                f.write(fasta[prot]["seq"])
+
+
 @click.command()
 @click.option('--fasta_uniprot_file', default="./data/abeta_blast_uniprot.fasta", help='Path to UniProt fasta file.')
 @click.option('--fasta_refseq_file', default="./data/abeta_blast_refseq.fasta", help='Path to RefSeq fasta file.')
@@ -373,6 +710,19 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
     result_file_aligned = os.path.join(result_folder, "final_file_aligned.csv")
     ox_sets, fasta_sequences = dict(), dict()
 
+    appa_appb_fasta_file = os.path.join(result_folder, "appa_appb.fasta")
+    appa_appb_gene_fasta_file = os.path.join(result_folder, "appa_appb_genes.fasta")
+    appa_appb_file_proteins_with_genes = os.path.join(result_folder, '"appa_appb_only_genes.fasta"')
+
+    appa_organisms_folder = os.path.join(result_folder, "./appa_organisms/")
+    appb_organisms_folder = os.path.join(result_folder, "./appb_organisms/")
+
+    if not os.path.exists(appa_organisms_folder):
+        os.mkdir(appa_organisms_folder)
+
+    if not os.path.exists(appb_organisms_folder):
+        os.mkdir(appb_organisms_folder)
+
     if fasta_refseq_file is not None:
         run_mafft(fasta_refseq_file, file_refseq_alignment)
         search_APP_localisation(file_aln=file_refseq_alignment,
@@ -391,11 +741,36 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
         ox_sets, fasta_sequences = get_organisms_uniprot(file_aln_uniprot=file_uniprot_proper_alignment,
                                                          fasta_file_uniprot=fasta_uniprot_file,
                                                          ox_sets=ox_sets, fasta_sequences=fasta_sequences)
+    # zapisać białka z chondroichties w oddzielnym pliku
+    fasta_sequences_by_headers = {i: {"header": j.split("\n")[0], "seq": j.split("\n")[0]} for i, j in fasta_sequences}
+    get_actino_sequences(fasta_sequences_by_headers, appa_appb_fasta_file)
+
+    # znaleźć geny tych białek
+    get_genes(appa_appb_fasta_file, appa_appb_gene_fasta_file)
+    # cd-tuning
+    appa_appb_sequences = read_files_with_sequences(appa_appb_gene_fasta_file)
+    tuning_cd_hit(appa_appb_gene_fasta_file)
+    changed_genes_fasta = change_genes_names(appa_appb_gene_fasta_file, appa_appb_sequences,
+                                             appa_appb_file_proteins_with_genes)
+
+    divide_appa_appb_by_files(changed_genes_fasta, appa_organisms_folder, appb_organisms_folder)
+
+    make_mafft_per_organism(appb_organisms_folder)
+    make_mafft_per_organism(appa_organisms_folder)
+    encode_mafft_find_amyloid_per_organism(appa_organisms_folder, os.path.join(appa_organisms_folder, result_file),
+                                           organims_with_isoforms)
+    encode_mafft_find_amyloid_per_organism(appb_organisms_folder, os.path.join(appb_organisms_folder, result_file),
+                                           organims_with_isoforms)
+
+
     # todo: add chondroichties analyse
     divide_by_organisms(folder_organisms, ox_sets, fasta_sequences)
     update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder=folder_organisms_with_reference)
     make_mafft_per_organism(folder_organisms_with_reference)
     encode_mafft_find_amyloid_per_organism(folder_organisms_with_reference, result_file, organims_with_isoforms)
+    file_names = os.listdir(appb_organisms_folder)
+    for file_name in file_names:
+        shutil.move(os.path.join(appb_organisms_folder, file_name), folder_organisms_with_reference)
     align_final_abeta(result_file, result_file_aligned)
 
 
