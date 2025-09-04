@@ -76,28 +76,6 @@ class Protein:
                 organisms = 29140
             if 32446 in org2.keys():
                 organisms = 32446
-            # if 'clade' in org.keys():
-            #     organisms = org['clade']
-            # if 'order' in org.keys():
-            #     organisms = org['order']
-            # elif 'infraorder' in org.keys():
-            #     organisms = org['infraorder']
-            #
-            # elif 'suborder' in org.keys():
-            #     organisms = org['suborder']
-            #
-            # elif 'superorder' in org.keys():
-            #     organisms = org['superorder']
-            #
-            # elif "superclass" in org.keys():
-            #     organisms = org['superclass']
-            #     print("superclass")
-            #
-            # else:
-            #     print("problem", self.organism_id, ncbi.get_taxid_translator([self.organism_id]))
-            # else:
-            #     # print(org)
-            #     organisms = org['order']
             else:
                 return self.organism_id
         else:
@@ -110,26 +88,4 @@ class Protein:
         for aminoacid, position in positions.items():
             if self.seq[position] == aminoacid[0]:
                 is_pos[f"{aminoacid}{position + 1}"] = 1
-        # print(is_pos)
         return is_pos
-
-    # def get_organism_general(self, ncbi):
-    #     organisms = None
-    #     if self.organism_id != "check":
-    #         selected = [7777, 40674, 1489341, 32561, 7894, 8292, 7898, 8782]
-    #         # for i in selected:
-    #         #     print(ncbi.get_rank(selected))
-    #         print(self.uniprot_id)
-    #         org = ncbi.get_lineage(self.organism_id)
-    #         for i in selected:
-    #             if i in org:
-    #                 organisms = i
-    #
-    #         if not organisms:
-    #             print(self.organism_id, org, ncbi.get_lineage(self.organism_id),
-    #                   ncbi.get_taxid_translator(ncbi.get_lineage(self.organism_id)))
-    #     else:
-    #         print("zle organism", self.organism_id)
-    #         return self.organism_id
-    #
-    #     return organisms
