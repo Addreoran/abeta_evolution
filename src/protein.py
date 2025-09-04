@@ -19,8 +19,6 @@ class Protein:
             if self.seq[position] == aminoacid:
                 is_pos = 1
         if is_pos:
-            # if self.seq[5] == "H" and self.seq[12]=="H"  and self.seq[13]=="H":
-            # print(self.seq[5])
             return True
         else:
             return False
@@ -51,37 +49,16 @@ class Protein:
 
     def get_organism_prec(self, ncbi):
         organisms = None
+        groups = [7777, 7894, 7899, 7914, 41712, 41705, 123369, 186626, 29140, 32446]
         if self.organism_id != "check":
-            org = {i: j for j, i in ncbi.get_rank(ncbi.get_lineage(self.organism_id)).items()}
             org2 = {j: i for j, i in ncbi.get_rank(ncbi.get_lineage(self.organism_id)).items()}
-            if 7777 in org2.keys():
-                # print(8888)
-                # input()
-                organisms = 7777
-            if 7894 in org2.keys():
-                organisms = 7894
-            if 7899 in org2.keys():
-                organisms = 7899
-            if 7914 in org2.keys():
-                organisms = 7914
-            if 41712 in org2.keys():
-                organisms = 41712
-            if 41705 in org2.keys():
-                organisms = 41705
-            if 123369 in org2.keys():
-                organisms = 123369
-            if 186626 in org2.keys():
-                organisms = 186626
-            if 29140 in org2.keys():
-                organisms = 29140
-            if 32446 in org2.keys():
-                organisms = 32446
+            for i in groups:
+                if i in org2:
+                    return organisms
             else:
                 return self.organism_id
         else:
             return self.organism_id
-        print("organisms", self.organism_id, organisms, org2, )
-        return organisms
 
     def find_by_positions_histidine(self, positions):
         is_pos = {f"{i}{j + 1}": 0 for i, j in positions.items()}
