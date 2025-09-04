@@ -148,14 +148,16 @@ def run_logo_steps(proteins, taxes, result_folder, name):
               os.path.join(result_folder, f"peptides_{name}_aligned.csv"))
 
 
-@click.option('--result_file', default="./result/final_file_aligned.csv",
+@click.option('--final_file', default="./result/final_file_aligned.csv",
               help='Path to finale file from script "select_nonredundant_proteins.py".')
 @click.option('--TaxIds', default=[],
               help='List of Taxonomy IDs to plot. If empty, it divide and plot default groups of animals.')
 @click.option('--result_folder', default="./WebLogo/",
               help='Folder with results.')
-def divide_organisms_by_groups(result_file, TaxIds, result_folder):
-    proteins = read_file(result_file)
+def divide_organisms_by_groups(final_file, TaxIds, result_folder):
+    proteins = read_file(final_file)
+    if not os.path.exists(result_folder):
+        os.mkdir(result_folder)
     if not TaxIds:
         groups = get_groups()
         for name, taxes in groups.items():
