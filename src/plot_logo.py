@@ -1,10 +1,10 @@
 import os.path
 
+import click
+import weblogo
 from ete3 import NCBITaxa
 
 from protein import Protein
-import click
-import weblogo
 
 
 def get_groups():
@@ -53,11 +53,11 @@ def save_group(proteins, file):
 def read_divided_file(file):
     result = {}
     with open(file) as f:
-        for l in f:
-            if l.strip():
-                line = l.strip().split(";")
-                if line:
-                    result[line[0]] = line[1]
+        for line in f:
+            if line.strip():
+                line_split = line.strip().split(";")
+                if line_split:
+                    result[line_split[0]] = line_split[1]
     return result
 
 
@@ -98,10 +98,10 @@ def draw_logo(save_file, file):
         sab = {}
         line_no = 0
         with open(file) as f:
-            for l in f.readlines():
-                if not l.startswith("taxId"):
-                    if l.strip() and "*" not in l:
-                        line = l.strip().split(";")
+            for line in f.readlines():
+                if not line.startswith("taxId"):
+                    if line.strip() and "*" not in line:
+                        line = line.strip().split(";")
                         uniprot = line_no
                         line_no += 1
                         seq = line[1]
@@ -127,8 +127,6 @@ def draw_logo(save_file, file):
     logooptions.unit_name = "probability"
     logooptions.scale_width = False
     logoformat = weblogo.LogoFormat(logodata, logooptions)
-    # logoformat.logo_width = logoformat.logo_width * 5
-    # logoformat.logo_height = logoformat.logo_height * 5
     jpeg = weblogo.logo_formatter.svg_formatter(logodata, logoformat)
     with open(save_file, "ab") as a:
         a.write(jpeg)

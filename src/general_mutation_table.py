@@ -7,9 +7,9 @@ AMINOACIDS = ["R", "H", "K", "D", "E", "S", "T", "N",
 def load_data(file):
     sequences = []
     with open(file) as f:
-        for l in f:
-            if l:
-                seq = l.split(";")[1]
+        for line in f:
+            if line:
+                seq = line.split(";")[1]
                 sequences.append(seq)
     return sequences
 
@@ -35,14 +35,14 @@ def make_csv(data, file, sequences):
             \multicolumn{1}{c}{type} & 5 & 12 & 13\\
             \midrule
             """)
-        for l in labels:
-            f.write(f"{l};")
-            print(f"{l}", end=" &")
+        for line in labels:
+            f.write(f"{line};")
+            print(f"{line}", end=" &")
             tolist = ""
             for pos in list_of_pos:
                 f.write(
-                    f"{round(data[pos][l], 2)};".replace("%", "\\%"))
-                tolist += f"{round(data[pos][l], 2)} ({round(100 * data[pos][l] / len(sequences), 2)}%) ".replace("%",
+                    f"{round(data[pos][line], 2)};".replace("%", "\\%"))
+                tolist += f"{round(data[pos][line], 2)} ({round(100 * data[pos][line] / len(sequences), 2)}%) ".replace("%",
                                                                                                                   "\\%") + "|"
             tolist = tolist.replace("|", "&", 2)
             tolist = tolist.replace("|", "")

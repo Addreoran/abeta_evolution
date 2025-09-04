@@ -55,9 +55,9 @@ def search_APP_localisation(file_aln, file_out_aln, file_out_aln_excluded):
 def get_organisms_from_file(file):
     result = {}
     with open(file) as f:
-        for l in f:
-            if l.strip():
-                acc, tax_id = l.strip().split(";")
+        for line in f:
+            if line.strip():
+                acc, tax_id = line.strip().split(";")
                 result[acc] = tax_id
     return result
 
@@ -75,13 +75,16 @@ def get_organism_by_refseq(refseq_id):
 def get_tax_uniprot(uniprot):
     utl = f"https://rest.uniprot.org/uniprotkb/{uniprot}.fasta"
     req = requests.get(utl)
-    for l in req.text.split("\n"):
-        if l.startswith(">"):
-            return l.split("OX=")[-1].split()[0]
+    for line in req.text.split("\n"):
+        if line.startswith(">"):
+            return line.split("OX=")[-1].split()[0]
 
 
 def get_organisms_uniprot(file_aln_uniprot, fasta_file_uniprot, fasta_sequences=None, ox_sets=None):
     acc_ox = {}
+    ox = None
+    acc = None
+    sequences = ""
     if fasta_sequences is None:
         fasta_sequences = {}
     if ox_sets is None:
@@ -130,6 +133,7 @@ def get_organisms_refseq(file_aln_refseq, fasta_file_refseq, organism_file, fast
     ox = 0
     acc_ox = {}
     ox_tmp = {}
+    sequences = ""
     with open(fasta_file_refseq) as f:
         for line in f.readlines():
             if line.startswith(">"):
@@ -145,8 +149,8 @@ def get_organisms_refseq(file_aln_refseq, fasta_file_refseq, organism_file, fast
                         else:
                             ox = get_organism_by_refseq(line.split("[")[-1].split("]")[0])
                             ox_tmp[line.split("[")[-1].split("]")[0]] = ox
-                    except:
-                        print(f"TaxId not found. Give me TaxId of {acc}:")
+                    except Exception as e:
+                        print(f"{e}. TaxId not found. Give me TaxId of {acc}:")
                         ox = input().strip()
                     with open(organism_file, "a") as o:
                         o.write(f"{acc};{ox}\n")
@@ -210,7 +214,6 @@ def encode_mafft_find_amyloid_per_organism(folder, result_file, organims_with_is
     pattern = pattern[:-4]
     final_file = open(result_file, "w")
     with open(organims_with_isoforms, "w") as o:
-        no_duble = 0
         for file in [i for i in os.listdir(folder) if "aln" in i and "encoded" not in i]:
             with open(folder + file) as f:
                 sequences = {}
@@ -317,18 +320,17 @@ def encode_mafft_find_amyloid_per_organism(folder, result_file, organims_with_is
 def align_final_abeta(file_in, file_out):
     with open(file_in) as f:
         with open("./tmp_file.fasta", "w") as f2:
-            for l in f:
-                if l.strip():
-                    line = l.split(";")
-                    f2.write(f">{line[0]}\n")
-                    f2.write(f"{line[1]}\n")
+            for line in f:
+                if line.strip():
+                    line_split = line.split(";")
+                    f2.write(f">{line_split[0]}\n")
+                    f2.write(f"{line_split[1]}\n")
     run_mafft("./tmp_file.fasta", "./tmp_file_mafft.aln")
     res = {}
     with open("./tmp_file_mafft.aln") as f:
-        for l in f:
-            if l.strip() and "CLUSTAL" not in l and len(l.split()) == 2:
-                print(l, l.strip().split())
-                acc, ali = l.strip().split()
+        for line in f:
+            if line.strip() and "CLUSTAL" not in line and len(line.split()) == 2:
+                acc, ali = line.strip().split()
                 if acc not in res:
                     res[acc] = ali
                 else:
@@ -345,7 +347,7 @@ def get_ensemble(id):
         result = set([i["display_name"].split("-")[0] for i in res.json()["Transcript"]])
         if len(result) == 1:
             return list(result)[0].lower()
-    except:
+    except Exception:
         return
 
 
@@ -374,25 +376,23 @@ def get_ncbi(accessions):
 def get_genes(source_file, save_file):
     with open(source_file) as f:
         with open(save_file, "w") as f2:
-            for l in f:
-                if l.startswith(">sp") or l.startswith(">tr"):
+            for line in f:
+                if line.startswith(">sp") or line.startswith(">tr"):
                     test = False
-                    print(l)
-                    protein = l.split("|")[1]
+                    protein = line.split("|")[1]
                     url = f"https://rest.uniprot.org/uniprotkb/{protein}.xml"
                     print(url)
                     xml_file = requests.get(url)
                     url_text = xml_file.text.encode("utf-8")
                     soup = BeautifulSoup(url_text)
-                    if l.split("|")[2] in ["app", "appa", "appb"]:
+                    if line.split("|")[2] in ["app", "appa", "appb"]:
                         test = True
                     for gene in soup.find_all('gene'):
                         if gene.text.lower().strip() in ["appa", "appb"]:
-                            print("test", l.split("|")[2])
-                            if l.split("|")[2] not in ["app", "appa", "appb"]:
-                                new_header = l.split("|")[:2] + [gene.text.lower().strip()] + l.split("|")[2:]
+                            if line.split("|")[2] not in ["app", "appa", "appb"]:
+                                new_header = line.split("|")[:2] + [gene.text.lower().strip()] + line.split("|")[2:]
                                 new_header = "|".join(new_header)
-                                l = new_header
+                                line = new_header
                                 test = True
 
                     if not test:
@@ -403,47 +403,47 @@ def get_genes(source_file, save_file):
                                 ensembl_id = prop["value"]
                                 gene_name = get_ensemble(ensembl_id.split(".")[0])
                                 if gene_name in ["app", "appa", "appb"]:
-                                    new_header = l.split("|")[:2] + [gene_name] + l.split("|")[2:]
+                                    new_header = line.split("|")[:2] + [gene_name] + line.split("|")[2:]
                                     new_header = "|".join(new_header)
-                                    l = new_header
+                                    line = new_header
 
                         for embl in soup.find_all('dbreference', type="EMBL"):
                             embl_id = embl["id"]
                             print(f"https://www.ebi.ac.uk/ena/browser/view/{embl_id}")
                             gene_name = input().strip()
                             if gene_name:
-                                new_header = l.split("|")[:2] + [gene_name] + l.split("|")[2:]
+                                new_header = line.split("|")[:2] + [gene_name] + line.split("|")[2:]
                                 new_header = "|".join(new_header)
-                                l = new_header
+                                line = new_header
                                 print(new_header)
                         for refseq in soup.find_all('dbreference', type="RefSeq"):
-                            refseq_id = refseq["id"]
+                            print(refseq)
                             gene_name = input().strip()
                             if gene_name:
-                                new_header = l.split("|")[:2] + [gene_name] + l.split("|")[2:]
+                                new_header = line.split("|")[:2] + [gene_name] + line.split("|")[2:]
                                 new_header = "|".join(new_header)
-                                l = new_header
-                elif l.startswith(">"):
-                    refseq_id = l[1:].split()[0]
-                    if "_" in l:
-                        print(l.split("_")[-1].split()[0])
-                        if l.split("_")[-1].split()[0] in ["app", "appa", "appb"]:
+                                line = new_header
+                elif line.startswith(">"):
+                    refseq_id = line[1:].split()[0]
+                    if "_" in line:
+                        print(line.split("_")[-1].split()[0])
+                        if line.split("_")[-1].split()[0] in ["app", "appa", "appb"]:
                             continue
                         else:
                             print(f"https://www.ncbi.nlm.nih.gov/protein/{refseq_id}")
                             gene_name = get_ncbi(refseq_id)
                             if gene_name:
-                                new_header = [l.split()[0] + f"_{gene_name}"] + l.split()[1:]
+                                new_header = [line.split()[0] + f"_{gene_name}"] + line.split()[1:]
                                 new_header = " ".join(new_header)
-                                l = new_header
+                                line = new_header
                     else:
                         print(f"https://www.ncbi.nlm.nih.gov/protein/{refseq_id}")
                         gene_name = get_ncbi(refseq_id)
                         if gene_name:
-                            new_header = [l.split()[0] + f"_{gene_name}"] + l.split()[1:]
+                            new_header = [line.split()[0] + f"_{gene_name}"] + line.split()[1:]
                             new_header = " ".join(new_header)
-                            l = new_header
-                f2.write(l)
+                            line = new_header
+                f2.write(line)
 
 
 def get_actino_sequences(fasta_sequences_by_headers, path):
@@ -474,18 +474,18 @@ def read_files_with_sequences(file):
     name = ""
     header = ""
     with open(file) as f:
-        for l in f.readlines():
-            if l.startswith(">"):
+        for line in f.readlines():
+            if line.startswith(">"):
                 if header:
                     res[name] = {"header": header, "seq": new_str}
-                    if ">sp" in l or ">tr" in l:
-                        name = l.split("|")[1]
+                    if ">sp" in line or ">tr" in line:
+                        name = line.split("|")[1]
                     else:
-                        name = l.split()[0][1:].replace("_appa", "").replace("_appb", "").replace("_app", "")
-                header = l
+                        name = line.split()[0][1:].replace("_appa", "").replace("_appb", "").replace("_app", "")
+                header = line
                 new_str = ""
             else:
-                new_str += l
+                new_str += line
     if name:
         res[name] = {"header": header, "seq": new_str}
     return res
@@ -541,16 +541,16 @@ def change_genes_names(last_file, fasta, file_proteins_appa_appb_with_genes):
                 new_data = {"lack": set(), "app": set(), "appa": set(), "appb": set()}
                 # with open(f"./new_tmp/new_tmp_c_{c}_s_{s}_aL_{aL}.clstr") as f:
                 with open(f"./tmp_c_{c}_s_{s}_aL_{aL}.clstr") as f:
-                    for l in f:
-                        if l.startswith(">"):
+                    for line in f:
+                        if line.startswith(">"):
                             if cluster_name:
                                 result[cluster_name] = new_data
-                            cluster_name = l.strip()
+                            cluster_name = line.strip()
                             new_data = {"lack": set(), "app": set(), "appa": set(), "appb": set()}
                         else:
                             gene = "lack"
-                            line = l.split(" ")
-                            acc_data = line[1]
+                            line_splited = line.split(" ")
+                            acc_data = line_splited[1]
                             # print(f"tmp_c_{c}_s_{s}_aL_{aL}.clstr", cluster_name, acc_data)
 
                             if "tr" in acc_data or "sp" in acc_data:
@@ -631,7 +631,6 @@ def divide_appa_appb_by_files(fasta, appa_folder, appb_folder, canonical_sequenc
                 f"{tax};{','.join(list(info['appa']))};{','.join(list(info['appb']))};{','.join(list(info['app']))};{','.join(list(info['other']))}\n")
     # tax;appa;appb;app;other
     for tax, info in info_tax.items():
-        open_type = "w"
         for prot in info['appa']:
             if not os.path.exists(os.path.join(appa_folder, f"{tax}.fasta")):
                 with open(os.path.join(appa_folder, f"{tax}.fasta"), "w") as f2:

@@ -1,8 +1,8 @@
 import os.path
-import click
 
-import numpy as np
+import click
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def generate_data(folder, files):
@@ -21,10 +21,10 @@ def generate_data(folder, files):
         with open(os.path.join(folder + file)) as f:
             for line in f:
                 if line.strip():
-                    l = line.split("\t")
-                    result_total[file].append(float(l[position_total]))
-                    result_16plus[file].append(float(l[position_16plus]))
-                    result_to16[file].append(float(l[position_to16]))
+                    line_split = line.split("\t")
+                    result_total[file].append(float(line_split[position_total]))
+                    result_16plus[file].append(float(line_split[position_16plus]))
+                    result_to16[file].append(float(line_split[position_to16]))
         set(result_total[file])
         possible_values = possible_values.union(set(result_total[file]))
         possible_values = possible_values.union(set(result_16plus[file]))

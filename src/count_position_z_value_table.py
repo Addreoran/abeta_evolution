@@ -7,20 +7,20 @@ import click
 def read_file(path):
     result = {}
     with open(path) as f:
-        for l in f:
-            if l.strip():
-                line = l.strip().split(";")
-                result[line[0]] = line[1]
+        for line in f:
+            if line.strip():
+                line_splitted = line.strip().split(";")
+                result[line_splitted[0]] = line_splitted[1]
     return result
 
 
 def read_file_app(path):
     result = {}
     with open(path) as f:
-        for l in f:
-            if l.strip():
-                line = l.strip().split(";")
-                result[line[0].split("_")[0]] = line[1]
+        for line in f:
+            if line.strip():
+                line_splitted = line.strip().split(";")
+                result[line_splitted[0].split("_")[0]] = line_splitted[1]
     return result
 
 
@@ -252,11 +252,11 @@ def create_files(final_file, main_organisms, result_folder):
                         z_mean_total_appb[lin].append(len(positions_hkr_total) - len(positions_ed_total))
                         z_mean_appb_16plus[lin].append(len(positions_hkr_16plus) - len(positions_ed_16plus))
 
-    save_result(os.path.join(result_folder, f"actino_appa_appb.csv"), organisms_species, organisms, sequences,
+    save_result(os.path.join(result_folder, "actino_appa_appb.csv"), organisms_species, organisms, sequences,
                 organisms_hkr, organisms_ed, z_mean_appa,
                 z_mean_total_appa, z_mean_appa_16plus,
                 z_mean_appb, z_mean_total_appb, z_mean_appb_16plus, ncbi, tax_important, simply=False)
-    save_result(os.path.join(result_folder, f"actino_appa_appb_simpl.csv"), organisms_species, organisms, sequences,
+    save_result(os.path.join(result_folder, "actino_appa_appb_simpl.csv"), organisms_species, organisms, sequences,
                 organisms_hkr, organisms_ed, z_mean_appa,
                 z_mean_total_appa, z_mean_appa_16plus,
                 z_mean_appb, z_mean_total_appb, z_mean_appb_16plus, ncbi, tax_important, simply=True)

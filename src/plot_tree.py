@@ -1,7 +1,7 @@
 import os
 
+import click
 from ete3 import NCBITaxa, TreeStyle, AttrFace
-import PyQt5
 
 from src.protein import Protein
 
@@ -161,9 +161,6 @@ def get_H(final_file, H_positions_file, main_organisms, positions, ncbi):
             for pos in positions_values:
                 f.write(f"{data[pos]};")
             f.write("\n")
-
-
-import click
 
 
 @click.option('--organisms', default={"7777": {7777: 'Chondrichthyes'},
