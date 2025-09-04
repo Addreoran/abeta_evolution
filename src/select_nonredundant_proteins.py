@@ -181,24 +181,10 @@ def divide_by_organisms(out_folder, ox_sets, fasta_sequences):
                 f3.write(fasta_sequences[acc])
 
 
-def update_organisms(fasta_sequences, ox_sets, out_folder):
-    if not os.path.exists(out_folder):
-        os.mkdir(out_folder)
+def update_organisms(fasta_sequences, ox_sets, out_folder, canonical_sequence):
     for ox, accs in ox_sets.items():
         with open(f"{out_folder}/{ox}.fasta", "w") as f:
-            f.write(">1|canonical_seq\nMLPGLALLLLAAWTARALEVPTDGNAGLLAEPQIAMFCGRLNMHMNVQNGKWDSDPSGTK\n"
-                    "TCIDTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGRKQCKTHPHFVIPYRCLVG\n"
-                    "EFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKSTNLHDYGMLLPCGIDKFR\n"
-                    "GVEFVCCPLAEESDNVDSADAEEDDSDVWWGGADTDYADGSEDKVVEVAEEEEVAEVEEE\n"
-                    "EADDDEDDEDGDEVEEEAEEPYEEATERTTSIATTTTTTTESVEEVVREVCSEQAETGPC\n"
-                    "RAMISRWYFDVTEGKCAPFFYGGCGGNRNNFDTEEYCMAVCGSAMSQSLLKTTQEPLARD\n"
-                    "PVKLPTTAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA\n"
-                    "KNLPKADKKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLALENYITAL\n"
-                    "QAVPPRPRHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDPKKAAQIRSQVMTHLRVIYER\n"
-                    "MNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRISYGNDALMPSLTET\n"
-                    "KTTVELLPVNGEFSLDDLQPWHSFGADSVPANTENEVEPVDARPAADRGLTTRPGSGLTN\n"
-                    "IKTEEISEVKMDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVIVITL\n"
-                    "VMLKKKQYTSIHHGVVEVDAAVTPEERHLSKMQQNGYENPTYKFFEQMQN\n")
+            f.write(canonical_sequence)
             for acc in accs:
                 if acc in fasta_sequences:
                     f.write(fasta_sequences[acc])
@@ -365,8 +351,6 @@ def get_ensemble(id):
 def get_ncbi(accessions):
     url = f" https://api.ncbi.nlm.nih.gov/datasets/v2/gene/accession/{accessions}"
     print(url)
-    import requests
-
     req = requests.get(url)
     resp_json = req.json()
     if "reports" in resp_json:
@@ -618,7 +602,7 @@ def change_genes_names(last_file, fasta, file_proteins_appa_appb_with_genes):
     return fasta
 
 
-def divide_appa_appb_by_files(fasta, appa_folder, appb_folder):
+def divide_appa_appb_by_files(fasta, appa_folder, appb_folder, canonical_sequence):
     info_tax = {}
     for acc, data_fasta in fasta.items():
         if ">sp" in data_fasta["header"] or ">tr" in data_fasta["header"]:
@@ -650,38 +634,14 @@ def divide_appa_appb_by_files(fasta, appa_folder, appb_folder):
         for prot in info['appa']:
             if not os.path.exists(os.path.join(appa_folder, f"{tax}.fasta")):
                 with open(os.path.join(appa_folder, f"{tax}.fasta"), "w") as f2:
-                    f2.write(">1|canonical_seq\nMLPGLALLLLAAWTARALEVPTDGNAGLLAEPQIAMFCGRLNMHMNVQNGKWDSDPSGTK\n"
-                             "TCIDTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGRKQCKTHPHFVIPYRCLVG\n"
-                             "EFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKSTNLHDYGMLLPCGIDKFR\n"
-                             "GVEFVCCPLAEESDNVDSADAEEDDSDVWWGGADTDYADGSEDKVVEVAEEEEVAEVEEE\n"
-                             "EADDDEDDEDGDEVEEEAEEPYEEATERTTSIATTTTTTTESVEEVVREVCSEQAETGPC\n"
-                             "RAMISRWYFDVTEGKCAPFFYGGCGGNRNNFDTEEYCMAVCGSAMSQSLLKTTQEPLARD\n"
-                             "PVKLPTTAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA\n"
-                             "KNLPKADKKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLALENYITAL\n"
-                             "QAVPPRPRHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDPKKAAQIRSQVMTHLRVIYER\n"
-                             "MNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRISYGNDALMPSLTET\n"
-                             "KTTVELLPVNGEFSLDDLQPWHSFGADSVPANTENEVEPVDARPAADRGLTTRPGSGLTN\n"
-                             "IKTEEISEVKMDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVIVITL\n"
-                             "VMLKKKQYTSIHHGVVEVDAAVTPEERHLSKMQQNGYENPTYKFFEQMQN\n")
+                    f2.write(canonical_sequence)
             with open(os.path.join(appa_folder, f"{tax}.fasta"), "a") as f:
                 f.write(fasta[prot]["header"])
                 f.write(fasta[prot]["seq"])
         for prot in info['appb']:
             if not os.path.exists(os.path.join(appb_folder, f"{tax}.fasta")):
                 with open(os.path.join(appb_folder, f"{tax}.fasta"), "w") as f2:
-                    f2.write(">1|canonical_seq\nMLPGLALLLLAAWTARALEVPTDGNAGLLAEPQIAMFCGRLNMHMNVQNGKWDSDPSGTK\n"
-                             "TCIDTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGRKQCKTHPHFVIPYRCLVG\n"
-                             "EFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKSTNLHDYGMLLPCGIDKFR\n"
-                             "GVEFVCCPLAEESDNVDSADAEEDDSDVWWGGADTDYADGSEDKVVEVAEEEEVAEVEEE\n"
-                             "EADDDEDDEDGDEVEEEAEEPYEEATERTTSIATTTTTTTESVEEVVREVCSEQAETGPC\n"
-                             "RAMISRWYFDVTEGKCAPFFYGGCGGNRNNFDTEEYCMAVCGSAMSQSLLKTTQEPLARD\n"
-                             "PVKLPTTAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA\n"
-                             "KNLPKADKKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLALENYITAL\n"
-                             "QAVPPRPRHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDPKKAAQIRSQVMTHLRVIYER\n"
-                             "MNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRISYGNDALMPSLTET\n"
-                             "KTTVELLPVNGEFSLDDLQPWHSFGADSVPANTENEVEPVDARPAADRGLTTRPGSGLTN\n"
-                             "IKTEEISEVKMDAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVIVITL\n"
-                             "VMLKKKQYTSIHHGVVEVDAAVTPEERHLSKMQQNGYENPTYKFFEQMQN\n")
+                    f2.write(canonical_sequence)
             with open(os.path.join(appb_folder, f"{tax}.fasta"), "a") as f:
                 f.write(fasta[prot]["header"])
                 f.write(fasta[prot]["seq"])
@@ -691,9 +651,12 @@ def divide_appa_appb_by_files(fasta, appa_folder, appb_folder):
 @click.option('--fasta_uniprot_file', default="./data/abeta_blast_uniprot.fasta", help='Path to UniProt fasta file.')
 @click.option('--fasta_refseq_file', default="./data/abeta_blast_refseq.fasta", help='Path to RefSeq fasta file.')
 @click.option('--result_folder', default="./result/", help='Path to result folder.')
-def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
+@click.option('--canonical_sequence', default="./data/canonical_sequence.fasta",
+              help='Path to file with reference_sequence.')
+def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder, canonical_sequence):
     if not os.path.exists(result_folder):
         os.mkdir(result_folder)
+    canonical_sequence = "\n".join([i for i in open(canonical_sequence).read().split("\n") if i.strip()])
     file_refseq_alignment = os.path.join(result_folder, "alignment_refseq.aln")
     file_refseq_proper_alignment = os.path.join(result_folder, "alignment_refseq_AB.aln")
     file_refseq_wrong_alignment = os.path.join(result_folder, "alignment_refseq_AB_excluded.aln")
@@ -702,9 +665,13 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
     files_uniprot_alignment = os.path.join(result_folder, "alignment_uniprot.aln")
     file_uniprot_proper_alignment = os.path.join(result_folder, "alignment_uniprot_AB.aln")
     file_uniprot_wrong_alignment = os.path.join(result_folder, "alignment_uniprot_AB_excluded.aln")
-
     folder_organisms = os.path.join(result_folder, "organism")
-    folder_organisms_with_reference = os.path.join(result_folder, "organism_updated/")
+    if not os.path.exists(folder_organisms):
+        os.mkdir(folder_organisms)
+    folder_organisms_with_reference = os.path.join(result_folder, "organism_updated")
+    if not os.path.exists(folder_organisms_with_reference):
+        os.mkdir(folder_organisms_with_reference)
+
     organims_with_isoforms = os.path.join(result_folder, "problematic_organism2.csv")
     result_file = os.path.join(result_folder, "final_file.csv")
     result_file_aligned = os.path.join(result_folder, "final_file_aligned.csv")
@@ -714,12 +681,11 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
     appa_appb_gene_fasta_file = os.path.join(result_folder, "appa_appb_genes.fasta")
     appa_appb_file_proteins_with_genes = os.path.join(result_folder, '"appa_appb_only_genes.fasta"')
 
-    appa_organisms_folder = os.path.join(result_folder, "./appa_organisms/")
-    appb_organisms_folder = os.path.join(result_folder, "./appb_organisms/")
+    appa_organisms_folder = os.path.join(result_folder, "appa_organisms")
+    appb_organisms_folder = os.path.join(result_folder, "appb_organisms")
 
     if not os.path.exists(appa_organisms_folder):
         os.mkdir(appa_organisms_folder)
-
     if not os.path.exists(appb_organisms_folder):
         os.mkdir(appb_organisms_folder)
 
@@ -732,7 +698,6 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
                                                         fasta_file_refseq=fasta_refseq_file,
                                                         organism_file=file_refseq_organisms, ox_sets=ox_sets,
                                                         fasta_sequences=fasta_sequences)
-    # todo: add chondroichties analyse
     if fasta_uniprot_file is not None:
         run_mafft(fasta_uniprot_file, files_uniprot_alignment)
         search_APP_localisation(file_aln=files_uniprot_alignment,
@@ -741,19 +706,16 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
         ox_sets, fasta_sequences = get_organisms_uniprot(file_aln_uniprot=file_uniprot_proper_alignment,
                                                          fasta_file_uniprot=fasta_uniprot_file,
                                                          ox_sets=ox_sets, fasta_sequences=fasta_sequences)
-    # zapisać białka z chondroichties w oddzielnym pliku
     fasta_sequences_by_headers = {i: {"header": j.split("\n")[0], "seq": j.split("\n")[0]} for i, j in fasta_sequences}
     get_actino_sequences(fasta_sequences_by_headers, appa_appb_fasta_file)
 
-    # znaleźć geny tych białek
     get_genes(appa_appb_fasta_file, appa_appb_gene_fasta_file)
-    # cd-tuning
     appa_appb_sequences = read_files_with_sequences(appa_appb_gene_fasta_file)
     tuning_cd_hit(appa_appb_gene_fasta_file)
     changed_genes_fasta = change_genes_names(appa_appb_gene_fasta_file, appa_appb_sequences,
                                              appa_appb_file_proteins_with_genes)
 
-    divide_appa_appb_by_files(changed_genes_fasta, appa_organisms_folder, appb_organisms_folder)
+    divide_appa_appb_by_files(changed_genes_fasta, appa_organisms_folder, appb_organisms_folder, canonical_sequence)
 
     make_mafft_per_organism(appb_organisms_folder)
     make_mafft_per_organism(appa_organisms_folder)
@@ -762,10 +724,9 @@ def run_blast(fasta_uniprot_file, fasta_refseq_file, result_folder):
     encode_mafft_find_amyloid_per_organism(appb_organisms_folder, os.path.join(appb_organisms_folder, result_file),
                                            organims_with_isoforms)
 
-
-    # todo: add chondroichties analyse
     divide_by_organisms(folder_organisms, ox_sets, fasta_sequences)
-    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder=folder_organisms_with_reference)
+    update_organisms(fasta_sequences=fasta_sequences, ox_sets=ox_sets, out_folder=folder_organisms_with_reference,
+                     canonical_sequence=canonical_sequence)
     make_mafft_per_organism(folder_organisms_with_reference)
     encode_mafft_find_amyloid_per_organism(folder_organisms_with_reference, result_file, organims_with_isoforms)
     file_names = os.listdir(appb_organisms_folder)

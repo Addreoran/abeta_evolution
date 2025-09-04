@@ -42,7 +42,7 @@ Table S1).
 
 To prepare the environment for running the analysis, the following must be installed: Python 3.9, CD-HIT and MAFFT.
 Additionally,
-Installation of the Python 3 packages specified in the requirements.in file is also required.
+Installation of the Python 3 packages specified in the requirements.txt file is also required.
 
 First, the region of interest should be searched for in the UniProt and non-redundant databases (the results of which
 will be published).
