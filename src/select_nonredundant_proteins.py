@@ -5,6 +5,7 @@ from Levenshtein import distance
 import click
 from ete3 import NCBITaxa
 import shutil
+from bs4 import BeautifulSoup
 
 
 def run_mafft(file, out):
